@@ -1,6 +1,7 @@
 import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useMemo } from 'react';
+import { Modal } from 'antd';
 import { useOrders } from '../hooks/useOrders';
 import SearchInput from '../components/SearchInput';
 import StatusFilter from '../components/StatusFilter';
@@ -11,10 +12,11 @@ import ErrorDisplay from '../components/common/ErrorDisplay';
 import LoadingMessage from '../components/common/LoadingMessage';
 
 export default function OrdersPage() {
-  const [params] = useSearchParams();
+  const [params, setParams] = useSearchParams();
   const page = Number(params.get('page') ?? '1');
   const q = params.get('q') ?? undefined;
   const status = params.get('status') ?? undefined;
+  const orderId = params.get('id') ?? undefined;
   const limit = 6;
   
   // Include sort parameter for server-side sorting
@@ -73,10 +75,6 @@ export default function OrdersPage() {
           </div>
         </motion.div>
 
-        <div style={{ marginTop: '2rem' }}>
-          <OrderDetail />
-        </div>
-
         {/* Orders List */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -110,6 +108,24 @@ export default function OrdersPage() {
             </motion.div>
           </div>
         </motion.div>
+
+        {/* Modal for Order Detail */}
+        <Modal
+          title="Order Details"
+          open={!!orderId}
+          onCancel={() => {
+            const newParams = new URLSearchParams(params);
+            newParams.delete('id');
+            setParams(newParams);
+          }}
+          footer={null}
+          width={800}
+          styles={{
+            body: { padding: 0 },
+          }}
+        >
+          {orderId && <OrderDetail orderId={orderId} />}
+        </Modal>
       </div>
     </div>
   );
