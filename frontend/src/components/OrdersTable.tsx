@@ -37,9 +37,7 @@ export default function OrdersTable({ items }: { items: Order[] }) {
       {/* Orders Grid */}
       <div className="orders-grid">
         <AnimatePresence mode="popLayout">
-          {sorted.map((order, index) => (
-            <OrderCard key={order.id} order={order} index={index} />
-          ))}
+          {sorted.map((order, index) => <OrderCard key={order.id} order={order} index={index} />)}
         </AnimatePresence>
       </div>
 

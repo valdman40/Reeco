@@ -6,6 +6,13 @@ export async function apiFetch(path: string, opt?: RequestInit) {
     ...opt,
   });
   if (!r.ok) throw new Error(await r.text());
+
+  // Handle empty responses (like 204 No Content)
+  const contentType = r.headers.get('content-type');
+  if (r.status === 204 || !contentType?.includes('application/json')) {
+    return null;
+  }
+
   try {
     return await r.json();
   } catch (e) {

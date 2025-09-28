@@ -1,14 +1,24 @@
-import {useSearchParams} from 'react-router-dom';
-import {useOrder} from '../hooks/useOrder';
-import {motion, AnimatePresence} from 'framer-motion';
-import {X, User, Hash, Package, DollarSign, FileText, CheckCircle, Clock, XCircle} from 'lucide-react';
-import {format} from 'date-fns';
+import { useSearchParams } from 'react-router-dom';
+import { useOrder } from '../hooks/useOrder';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  X,
+  User,
+  Hash,
+  Package,
+  DollarSign,
+  FileText,
+  CheckCircle,
+  Clock,
+  XCircle,
+} from 'lucide-react';
+import { format } from 'date-fns';
 
-export default function OrderDetail(){
-  const [params, setParams]=useSearchParams();
-  const id=params.get('id');
-  const {data,isLoading}=useOrder(id??'');
-  
+export default function OrderDetail() {
+  const [params, setParams] = useSearchParams();
+  const id = params.get('id');
+  const { data, isLoading } = useOrder(id ?? '');
+
   const closePanel = () => {
     const newParams = new URLSearchParams(params);
     newParams.delete('id');
@@ -20,32 +30,36 @@ export default function OrderDetail(){
       case 'pending':
         return {
           icon: <Clock className="w-5 h-5" />,
-          badge: 'bg-gradient-to-r from-yellow-100 to-orange-100 text-yellow-800 border-yellow-200',
-          color: 'yellow'
+          badge:
+            'bg-gradient-to-r from-yellow-100 to-orange-100 text-yellow-800 border-yellow-200',
+          color: 'yellow',
         };
       case 'approved':
         return {
           icon: <CheckCircle className="w-5 h-5" />,
-          badge: 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border-green-200',
-          color: 'green'
+          badge:
+            'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border-green-200',
+          color: 'green',
         };
       case 'rejected':
         return {
           icon: <XCircle className="w-5 h-5" />,
-          badge: 'bg-gradient-to-r from-red-100 to-pink-100 text-red-800 border-red-200',
-          color: 'red'
+          badge:
+            'bg-gradient-to-r from-red-100 to-pink-100 text-red-800 border-red-200',
+          color: 'red',
         };
       default:
         return {
           icon: <Clock className="w-5 h-5" />,
-          badge: 'bg-gradient-to-r from-gray-100 to-slate-100 text-gray-800 border-gray-200',
-          color: 'gray'
+          badge:
+            'bg-gradient-to-r from-gray-100 to-slate-100 text-gray-800 border-gray-200',
+          color: 'gray',
         };
     }
   };
-  
-  if(!id) return null;
-  
+
+  if (!id) return null;
+
   return (
     <AnimatePresence>
       {id && (
@@ -58,7 +72,7 @@ export default function OrderDetail(){
             onClick={closePanel}
             className="fixed inset-0 bg-black bg-opacity-50 z-40"
           />
-          
+
           {/* Slide-over Panel */}
           <motion.div
             initial={{ x: '100%' }}
@@ -69,7 +83,7 @@ export default function OrderDetail(){
           >
             <div className="flex flex-col h-full">
               {/* Header */}
-              <motion.div 
+              <motion.div
                 initial={{ y: -50, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.2 }}
@@ -81,11 +95,15 @@ export default function OrderDetail(){
                       <Package className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <h2 className="text-xl font-bold text-white">Order Details</h2>
-                      <p className="text-purple-100 text-sm">#{id?.slice(-8)}</p>
+                      <h2 className="text-xl font-bold text-white">
+                        Order Details
+                      </h2>
+                      <p className="text-purple-100 text-sm">
+                        #{id?.slice(-8)}
+                      </p>
                     </div>
                   </div>
-                  
+
                   <motion.button
                     whileHover={{ scale: 1.1, rotate: 90 }}
                     whileTap={{ scale: 0.9 }}
@@ -100,7 +118,7 @@ export default function OrderDetail(){
               {/* Content */}
               <div className="flex-1 overflow-y-auto">
                 {isLoading && (
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     className="p-8"
@@ -116,7 +134,7 @@ export default function OrderDetail(){
                           </div>
                         </div>
                       </div>
-                      
+
                       {/* Content Skeleton */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {[1, 2, 3, 4].map((i) => (
@@ -142,8 +160,13 @@ export default function OrderDetail(){
                     <div className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
                       <XCircle className="w-12 h-12 text-red-500" />
                     </div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">Order Not Found</h3>
-                    <p className="text-gray-500 mb-6">The order you're looking for doesn't exist or may have been removed.</p>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                      Order Not Found
+                    </h3>
+                    <p className="text-gray-500 mb-6">
+                      The order you're looking for doesn't exist or may have
+                      been removed.
+                    </p>
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
@@ -168,17 +191,29 @@ export default function OrderDetail(){
                         <div className="w-20 h-20 bg-gradient-to-br from-purple-400 to-indigo-500 rounded-3xl flex items-center justify-center text-white font-bold text-2xl shadow-lg">
                           {data.customer.charAt(0).toUpperCase()}
                         </div>
-                        <div className={`absolute -bottom-2 -right-2 w-6 h-6 rounded-full border-4 border-white shadow-lg ${
-                          getStatusConfig(data.status).color === 'green' ? 'bg-green-500' : 
-                          getStatusConfig(data.status).color === 'yellow' ? 'bg-yellow-500' : 
-                          getStatusConfig(data.status).color === 'red' ? 'bg-red-500' : 'bg-gray-400'
-                        }`}></div>
+                        <div
+                          className={`absolute -bottom-2 -right-2 w-6 h-6 rounded-full border-4 border-white shadow-lg ${
+                            getStatusConfig(data.status).color === 'green'
+                              ? 'bg-green-500'
+                              : getStatusConfig(data.status).color === 'yellow'
+                              ? 'bg-yellow-500'
+                              : getStatusConfig(data.status).color === 'red'
+                              ? 'bg-red-500'
+                              : 'bg-gray-400'
+                          }`}
+                        ></div>
                       </div>
-                      
+
                       <div className="flex-1">
-                        <h3 className="text-2xl font-bold text-gray-900 mb-2">{data.customer}</h3>
+                        <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                          {data.customer}
+                        </h3>
                         <div className="flex items-center space-x-3">
-                          <span className={`inline-flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-medium border ${getStatusConfig(data.status).badge}`}>
+                          <span
+                            className={`inline-flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-medium border ${
+                              getStatusConfig(data.status).badge
+                            }`}
+                          >
                             {getStatusConfig(data.status).icon}
                             <span className="capitalize">{data.status}</span>
                           </span>
@@ -198,7 +233,9 @@ export default function OrderDetail(){
                       >
                         <div className="flex items-center space-x-3 mb-4">
                           <Hash className="w-5 h-5 text-purple-600" />
-                          <h4 className="font-semibold text-gray-900">Order Information</h4>
+                          <h4 className="font-semibold text-gray-900">
+                            Order Information
+                          </h4>
                         </div>
                         <div className="space-y-6">
                           <div className="flex items-center justify-between">
@@ -210,7 +247,10 @@ export default function OrderDetail(){
                           <div className="flex items-center justify-between">
                             <span className="text-gray-600">Created</span>
                             <span className="font-medium">
-                              {format(new Date(data.createdAt), 'MMM dd, yyyy HH:mm')}
+                              {format(
+                                new Date(data.createdAt),
+                                'MMM dd, yyyy HH:mm'
+                              )}
                             </span>
                           </div>
                           <div className="flex items-center justify-between">
@@ -229,7 +269,9 @@ export default function OrderDetail(){
                       >
                         <div className="flex items-center space-x-3 mb-4">
                           <DollarSign className="w-5 h-5 text-green-600" />
-                          <h4 className="font-semibold text-gray-900">Financial Details</h4>
+                          <h4 className="font-semibold text-gray-900">
+                            Financial Details
+                          </h4>
                         </div>
                         <div className="space-y-6">
                           <div className="flex items-center justify-between">
@@ -239,11 +281,19 @@ export default function OrderDetail(){
                             </span>
                           </div>
                           <div className="flex items-center justify-between">
-                            <span className="text-gray-600">Approval Status</span>
-                            <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                              data.isApproved ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                            }`}>
-                              {data.isApproved ? 'Approved' : 'Pending Approval'}
+                            <span className="text-gray-600">
+                              Approval Status
+                            </span>
+                            <span
+                              className={`px-3 py-1 rounded-full text-sm font-medium ${
+                                data.isApproved
+                                  ? 'bg-green-100 text-green-700'
+                                  : 'bg-yellow-100 text-yellow-700'
+                              }`}
+                            >
+                              {data.isApproved
+                                ? 'Approved'
+                                : 'Pending Approval'}
                             </span>
                           </div>
                         </div>
@@ -256,7 +306,9 @@ export default function OrderDetail(){
                       >
                         <div className="flex items-center space-x-3 mb-4">
                           <User className="w-5 h-5 text-blue-600" />
-                          <h4 className="font-semibold text-gray-900">Customer Details</h4>
+                          <h4 className="font-semibold text-gray-900">
+                            Customer Details
+                          </h4>
                         </div>
                         <div className="space-y-6">
                           <div className="flex items-center justify-between">
@@ -281,7 +333,9 @@ export default function OrderDetail(){
                       >
                         <div className="flex items-center space-x-3 mb-4">
                           <FileText className="w-5 h-5 text-gray-600" />
-                          <h4 className="font-semibold text-gray-900">Raw Data</h4>
+                          <h4 className="font-semibold text-gray-900">
+                            Raw Data
+                          </h4>
                         </div>
                         <div className="bg-gray-50 rounded-xl p-4 overflow-auto max-h-48">
                           <pre className="text-xs text-gray-600 whitespace-pre-wrap font-mono">

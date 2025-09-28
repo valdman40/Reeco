@@ -87,14 +87,21 @@ export const handlers = [
     return HttpResponse.json(order);
   }),
 
-  http.patch('http://localhost:3001/orders/:id', async ({ params }) => {
-    const order = orders.find((o) => o.id === params.id);
-    if (!order) {
-      return new HttpResponse(null, { status: 404 });
+  http.patch(
+    'http://localhost:3001/orders/:id',
+    async ({ params, request }) => {
+      const order = orders.find((o) => o.id === params.id);
+      if (!order) {
+        return new HttpResponse(null, { status: 404 });
+      }
+
+      // Parse the request body to get the actual isApproved value
+      const body = (await request.json()) as { isApproved: boolean };
+
+      // Update the order in memory for testing
+      order.isApproved = body.isApproved;
+      order.status = body.isApproved ? 'approved' : 'pending';
+      return new HttpResponse(null, { status: 204 });
     }
-    // Update the order in memory for testing
-    order.isApproved = !order.isApproved;
-    order.status = order.isApproved ? 'approved' : 'pending';
-    return new HttpResponse(null, { status: 204 });
-  }),
+  ),
 ];

@@ -20,7 +20,7 @@ interface OrderCardProps {
   index: number;
 }
 
-export default function OrderCard({ order, index }: OrderCardProps) {
+const OrderCard = React.forwardRef<HTMLDivElement, OrderCardProps>(({ order, index }, ref) => {
   const navigate = useNavigate();
   const approve = useApproveOrder();
 
@@ -61,7 +61,7 @@ export default function OrderCard({ order, index }: OrderCardProps) {
 
   return (
     <motion.div
-      key={order.id}
+      ref={ref}
       layout
       initial={{ opacity: 0, y: 20, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -182,4 +182,8 @@ export default function OrderCard({ order, index }: OrderCardProps) {
       </motion.div>
     </motion.div>
   );
-}
+});
+
+OrderCard.displayName = 'OrderCard';
+
+export default OrderCard;
