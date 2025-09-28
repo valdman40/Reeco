@@ -1,14 +1,20 @@
-import {useSearchParams} from 'react-router-dom';
-import {motion} from 'framer-motion';
-import {ChevronLeft, ChevronRight, MoreHorizontal} from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
 
-export default function Pagination({total,limit}:{total:number;limit:number}){
-  const [params,set]=useSearchParams();
-  const p=Number(params.get('page')??'1');
-  const max=Math.ceil(total/limit);
-  
-  function goTo(n:number){
-    params.set('page',String(n));
+export default function Pagination({
+  total,
+  limit,
+}: {
+  total: number;
+  limit: number;
+}) {
+  const [params, set] = useSearchParams();
+  const p = Number(params.get('page') ?? '1');
+  const max = Math.ceil(total / limit);
+
+  function goTo(n: number) {
+    params.set('page', String(n));
     set(params);
   }
 
@@ -16,7 +22,7 @@ export default function Pagination({total,limit}:{total:number;limit:number}){
   const getPageNumbers = () => {
     const pages: (number | string)[] = [];
     const showPages = 5; // Show max 5 page buttons
-    
+
     if (max <= showPages) {
       // Show all pages if total is small
       for (let i = 1; i <= max; i++) {
@@ -32,31 +38,31 @@ export default function Pagination({total,limit}:{total:number;limit:number}){
         pages.push(1, '...', p - 1, p, p + 1, '...', max);
       }
     }
-    
+
     return pages;
   };
-  
+
   if (max <= 1) return null;
 
   return (
     <div className="flex items-center justify-between mt-8">
       {/* Mobile Pagination */}
       <div className="flex flex-1 justify-between sm:hidden">
-        <motion.button 
+        <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          disabled={p<=1} 
-          onClick={()=>goTo(p-1)}
+          disabled={p <= 1}
+          onClick={() => goTo(p - 1)}
           className="button-modern disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:transform-none"
         >
           <ChevronLeft className="w-4 h-4 mr-2" />
           Previous
         </motion.button>
-        <motion.button 
+        <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          disabled={p>=max} 
-          onClick={()=>goTo(p+1)}
+          disabled={p >= max}
+          onClick={() => goTo(p + 1)}
           className="button-modern disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:transform-none"
         >
           Next
@@ -69,9 +75,9 @@ export default function Pagination({total,limit}:{total:number;limit:number}){
         <div className="flex items-center space-x-2">
           <div className="px-4 py-2 bg-gradient-to-r from-purple-100 to-indigo-100 rounded-xl">
             <p className="text-sm font-medium text-purple-700">
-              Showing <span className="font-bold">{(p-1) * limit + 1}</span> to{' '}
-              <span className="font-bold">{Math.min(p * limit, total)}</span> of{' '}
-              <span className="font-bold">{total}</span> orders
+              Showing <span className="font-bold">{(p - 1) * limit + 1}</span>{' '}
+              to <span className="font-bold">{Math.min(p * limit, total)}</span>{' '}
+              of <span className="font-bold">{total}</span> orders
             </p>
           </div>
         </div>
@@ -81,8 +87,8 @@ export default function Pagination({total,limit}:{total:number;limit:number}){
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={()=>goTo(p-1)}
-            disabled={p<=1}
+            onClick={() => goTo(p - 1)}
+            disabled={p <= 1}
             className="p-3 rounded-xl bg-white border-2 border-gray-200 text-gray-600 hover:border-purple-300 hover:text-purple-600 hover:bg-purple-50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:transform-none"
           >
             <ChevronLeft className="w-5 h-5" />
@@ -118,8 +124,8 @@ export default function Pagination({total,limit}:{total:number;limit:number}){
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={()=>goTo(p+1)}
-            disabled={p>=max}
+            onClick={() => goTo(p + 1)}
+            disabled={p >= max}
             className="p-3 rounded-xl bg-white border-2 border-gray-200 text-gray-600 hover:border-purple-300 hover:text-purple-600 hover:bg-purple-50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:transform-none"
           >
             <ChevronRight className="w-5 h-5" />
