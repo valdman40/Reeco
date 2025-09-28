@@ -8,18 +8,20 @@ import { queryClient } from './lib/queryClient';
 
 async function enableMocking() {
   if (import.meta.env.VITE_USE_MOCK_DATA !== 'true') {
-    console.log('Mock data is disabled')
-    return
+    console.log('Mock data is disabled');
+    return;
   }
 
-  console.log('Starting mock service worker...')
-  const { worker } = await import('./mocks/browser')
-  
-  return worker.start({
-    onUnhandledRequest: 'warn'
-  }).then(() => {
-    console.log('Mock service worker started successfully')
-  })
+  console.log('Starting mock service worker...');
+  const { worker } = await import('./mocks/browser');
+
+  return worker
+    .start({
+      onUnhandledRequest: 'warn',
+    })
+    .then(() => {
+      console.log('Mock service worker started successfully');
+    });
 }
 
 enableMocking().then(() => {
@@ -27,7 +29,7 @@ enableMocking().then(() => {
     <React.StrictMode>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
-          <App/>
+          <App />
         </BrowserRouter>
       </QueryClientProvider>
     </React.StrictMode>

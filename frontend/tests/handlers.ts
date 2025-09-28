@@ -1,24 +1,24 @@
-import { http, HttpResponse } from "msw";
+import { http, HttpResponse } from 'msw';
 
 const customerNames = [
-  "Alice Johnson",
-  "Bob Smith",
-  "Carol Wilson",
-  "David Brown",
-  "Emma Davis",
-  "Frank Miller",
-  "Grace Lee",
-  "Henry Taylor",
-  "Ivy Chen",
-  "Jack Anderson",
-  "Kate Thompson",
-  "Liam Garcia",
-  "Maya Patel",
-  "Noah Martinez",
-  "Olivia White",
+  'Alice Johnson',
+  'Bob Smith',
+  'Carol Wilson',
+  'David Brown',
+  'Emma Davis',
+  'Frank Miller',
+  'Grace Lee',
+  'Henry Taylor',
+  'Ivy Chen',
+  'Jack Anderson',
+  'Kate Thompson',
+  'Liam Garcia',
+  'Maya Patel',
+  'Noah Martinez',
+  'Olivia White',
 ];
 
-const statuses = ["pending", "approved", "rejected"];
+const statuses = ['pending', 'approved', 'rejected'];
 
 const orders = Array.from({ length: 15 }).map((_, i) => {
   const statusIndex = i % 3;
@@ -26,7 +26,7 @@ const orders = Array.from({ length: 15 }).map((_, i) => {
   baseDate.setDate(baseDate.getDate() - (i % 30)); // Spread orders across last 30 days
 
   return {
-    id: `ord-${String(i + 1000).padStart(4, "0")}`,
+    id: `ord-${String(i + 1000).padStart(4, '0')}`,
     customer: customerNames[i] || `Customer ${i + 1}`,
     status: statuses[statusIndex],
     total: Math.floor(Math.random() * 2000) + 50, // Random totals between $50-$2050
@@ -37,18 +37,18 @@ const orders = Array.from({ length: 15 }).map((_, i) => {
 });
 
 export const handlers = [
-  http.get("http://localhost:3001/orders", ({ request }) => {
+  http.get('http://localhost:3001/orders', ({ request }) => {
     const url = new URL(request.url);
-    const page = Number(url.searchParams.get("page") ?? "1");
-    const limit = Number(url.searchParams.get("limit") ?? "15");
+    const page = Number(url.searchParams.get('page') ?? '1');
+    const limit = Number(url.searchParams.get('limit') ?? '15');
     const status =
-      url.searchParams.get("status") === "undefined"
-        ? ""
-        : url.searchParams.get("status");
+      url.searchParams.get('status') === 'undefined'
+        ? ''
+        : url.searchParams.get('status');
     const q =
-      url.searchParams.get("q") === "undefined"
-        ? ""
-        : url.searchParams.get("q");
+      url.searchParams.get('q') === 'undefined'
+        ? ''
+        : url.searchParams.get('q');
 
     let filteredOrders = [...orders];
 
@@ -79,7 +79,7 @@ export const handlers = [
     });
   }),
 
-  http.get("http://localhost:3001/orders/:id", ({ params }) => {
+  http.get('http://localhost:3001/orders/:id', ({ params }) => {
     const order = orders.find((o) => o.id === params.id);
     if (!order) {
       return new HttpResponse(null, { status: 404 });
@@ -87,14 +87,14 @@ export const handlers = [
     return HttpResponse.json(order);
   }),
 
-  http.patch("http://localhost:3001/orders/:id", async ({ params }) => {
+  http.patch('http://localhost:3001/orders/:id', async ({ params }) => {
     const order = orders.find((o) => o.id === params.id);
     if (!order) {
       return new HttpResponse(null, { status: 404 });
     }
     // Update the order in memory for testing
     order.isApproved = !order.isApproved;
-    order.status = order.isApproved ? "approved" : "pending";
+    order.status = order.isApproved ? 'approved' : 'pending';
     return new HttpResponse(null, { status: 204 });
   }),
 ];

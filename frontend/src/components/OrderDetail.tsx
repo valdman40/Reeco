@@ -65,7 +65,7 @@ export default function OrderDetail(){
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="inset-y-0 right-0 w-full max-w-2xl bg-white shadow-2xl z-50 overflow-hidden"
+            className="inset-y-0 w-full max-w-2xl bg-white shadow-2xl z-50 overflow-hidden border-l-4 border-gray-300"
           >
             <div className="flex flex-col h-full">
               {/* Header */}

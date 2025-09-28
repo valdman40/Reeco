@@ -25,8 +25,12 @@ export default function OrdersPage() {
           transition={{ duration: 0.5 }}
           className="mb-12"
         >
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Order Management</h1>
-          <p className="text-gray-600">Track and manage all your orders efficiently</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Order Management
+          </h1>
+          <p className="text-gray-600">
+            Track and manage all your orders efficiently
+          </p>
         </motion.div>
 
         {/* Search Input */}
@@ -95,14 +99,26 @@ export default function OrdersPage() {
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
                     <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                      <svg className="h-6 w-6 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                      <svg
+                        className="h-6 w-6 text-red-500"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                     </div>
                   </div>
                   <div className="ml-6">
-                    <h3 className="text-xl font-bold text-red-800 mb-2">Error Loading Orders</h3>
-                    <p className="text-red-600">There was a problem loading your orders. Please try again.</p>
+                    <h3 className="text-xl font-bold text-red-800 mb-2">
+                      Error Loading Orders
+                    </h3>
+                    <p className="text-red-600">
+                      There was a problem loading your orders. Please try again.
+                    </p>
                   </div>
                 </div>
               </motion.div>

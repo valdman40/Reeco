@@ -1,49 +1,60 @@
-import {Order} from '../types/order';
-import {useApproveOrder} from '../hooks/useApproveOrder';
-import {useNavigate,useSearchParams} from 'react-router-dom';
-import {sortOrders} from '../utils/clientSort';
-import {motion, AnimatePresence} from 'framer-motion';
-import {User, Calendar, Hash, MapPin, DollarSign, Eye, CheckCircle, XCircle, Clock, ArrowUpDown} from 'lucide-react';
-import {format} from 'date-fns';
+import { Order } from '../types/order';
+import { useApproveOrder } from '../hooks/useApproveOrder';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { sortOrders } from '../utils/clientSort';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  User,
+  Calendar,
+  Hash,
+  MapPin,
+  DollarSign,
+  Eye,
+  CheckCircle,
+  XCircle,
+  Clock,
+  ArrowUpDown,
+} from 'lucide-react';
+import { format } from 'date-fns';
 
-export default function OrdersTable({items}:{items:Order[]}){
-  const approve=useApproveOrder();
-  const [params,set]=useSearchParams();
-  const nav=useNavigate();
-  const sort=params.get('sort')??'createdAt:desc';
-  const sorted=sortOrders(items,sort);
-  
-  function toggle(f:string){
-    const dir=sort.indexOf('desc') > -1 ?'asc':'desc';
-    params.set('sort',`${f}:${dir}`);
+export default function OrdersTable({ items }: { items: Order[] }) {
+  const approve = useApproveOrder();
+  const [params, set] = useSearchParams();
+  const nav = useNavigate();
+  const sort = params.get('sort') ?? 'createdAt:desc';
+  const sorted = sortOrders(items, sort);
+
+  function toggle(f: string) {
+    const dir = sort.indexOf('desc') > -1 ? 'asc' : 'desc';
+    params.set('sort', `${f}:${dir}`);
     set(params);
   }
-  
+
   const getStatusConfig = (status: string) => {
     switch (status.toLowerCase()) {
       case 'pending':
         return {
           badgeClass: 'status-badge pending',
-          icon: <Clock style={{width: '1rem', height: '1rem'}} />,
-          indicatorClass: 'pending'
+          icon: <Clock style={{ width: '1rem', height: '1rem' }} />,
+          indicatorClass: 'pending',
         };
       case 'approved':
         return {
           badgeClass: 'status-badge approved',
-          icon: <CheckCircle style={{width: '1rem', height: '1rem'}} />,
-          indicatorClass: 'approved'
+          icon: <CheckCircle style={{ width: '1rem', height: '1rem' }} />,
+          indicatorClass: 'approved',
         };
       case 'rejected':
         return {
           badgeClass: 'status-badge rejected',
-          icon: <XCircle style={{width: '1rem', height: '1rem'}} />,
-          indicatorClass: 'rejected'
+          icon: <XCircle style={{ width: '1rem', height: '1rem' }} />,
+          indicatorClass: 'rejected',
         };
       default:
         return {
           badgeClass: 'status-badge',
-          icon: <Clock style={{width: '1rem', height: '1rem'}} />,
-          indicatorClass: 'default'
+          icon: <Clock style={{ width: '1rem', height: '1rem' }} />,
+          indicatorClass: 'default',
         };
     }
   };
@@ -52,16 +63,14 @@ export default function OrdersTable({items}:{items:Order[]}){
     <div className="orders-container">
       {/* Sort Controls */}
       <div className="orders-header">
-        <h3 className="orders-title">
-          Recent Orders ({sorted.length})
-        </h3>
+        <h3 className="orders-title">Recent Orders ({sorted.length})</h3>
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => toggle('total')}
           className="sort-button"
         >
-          <ArrowUpDown style={{width: '1rem', height: '1rem'}} />
+          <ArrowUpDown style={{ width: '1rem', height: '1rem' }} />
           <span>Sort by Total</span>
         </motion.button>
       </div>
@@ -71,7 +80,7 @@ export default function OrdersTable({items}:{items:Order[]}){
         <AnimatePresence mode="popLayout">
           {sorted.map((order, index) => {
             const statusConfig = getStatusConfig(order.status);
-            
+
             return (
               <motion.div
                 key={order.id}
@@ -79,9 +88,9 @@ export default function OrdersTable({items}:{items:Order[]}){
                 initial={{ opacity: 0, y: 20, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -20, scale: 0.95 }}
-                transition={{ 
+                transition={{
                   duration: 0.3,
-                  delay: index * 0.05
+                  delay: index * 0.05,
                 }}
                 whileHover={{ y: -8, scale: 1.02 }}
                 onClick={() => nav(`/orders?id=${order.id}`)}
@@ -94,14 +103,16 @@ export default function OrdersTable({items}:{items:Order[]}){
                       <div className="avatar-circle">
                         {order.customer.charAt(0).toUpperCase()}
                       </div>
-                      <div className={`status-indicator ${statusConfig.indicatorClass}`}></div>
+                      <div
+                        className={`status-indicator ${statusConfig.indicatorClass}`}
+                      ></div>
                     </div>
                     <div className="customer-details">
                       <h4>{order.customer}</h4>
                       <p>#{order.id.slice(-6)}</p>
                     </div>
                   </div>
-                  
+
                   <motion.button
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
@@ -111,7 +122,7 @@ export default function OrdersTable({items}:{items:Order[]}){
                       nav(`/orders?id=${order.id}`);
                     }}
                   >
-                    <Eye style={{width: '1rem', height: '1rem'}} />
+                    <Eye style={{ width: '1rem', height: '1rem' }} />
                   </motion.button>
                 </div>
 
@@ -119,24 +130,28 @@ export default function OrdersTable({items}:{items:Order[]}){
                 <div>
                   <span className={statusConfig.badgeClass}>
                     {statusConfig.icon}
-                    <span style={{textTransform: 'capitalize'}}>{order.status}</span>
+                    <span style={{ textTransform: 'capitalize' }}>
+                      {order.status}
+                    </span>
                   </span>
                 </div>
 
                 {/* Order Details */}
                 <div className="order-details">
                   <div className="order-detail-item">
-                    <Calendar style={{width: '1rem', height: '1rem'}} />
-                    <span>{format(new Date(order.createdAt), 'MMM dd, yyyy')}</span>
+                    <Calendar style={{ width: '1rem', height: '1rem' }} />
+                    <span>
+                      {format(new Date(order.createdAt), 'MMM dd, yyyy')}
+                    </span>
                   </div>
-                  
+
                   <div className="order-detail-item">
-                    <User style={{width: '1rem', height: '1rem'}} />
+                    <User style={{ width: '1rem', height: '1rem' }} />
                     <span>Order Team</span>
                   </div>
-                  
+
                   <div className="order-detail-item">
-                    <MapPin style={{width: '1rem', height: '1rem'}} />
+                    <MapPin style={{ width: '1rem', height: '1rem' }} />
                     <span>General Outlet</span>
                   </div>
                 </div>
@@ -145,16 +160,21 @@ export default function OrdersTable({items}:{items:Order[]}){
                 <div className="order-total">
                   <span className="total-label">Total Amount</span>
                   <div className="total-amount">
-                    <DollarSign className="dollar-icon" style={{width: '1rem', height: '1rem'}} />
-                    <span className="amount">{order.total.toLocaleString()}</span>
+                    <DollarSign
+                      className="dollar-icon"
+                      style={{ width: '1rem', height: '1rem' }}
+                    />
+                    <span className="amount">
+                      {order.total.toLocaleString()}
+                    </span>
                   </div>
                 </div>
 
                 {/* Hover Action Buttons */}
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
-                  animate={{ 
-                    opacity: 1, 
+                  animate={{
+                    opacity: 1,
                     height: 'auto',
                   }}
                   className="order-actions"
@@ -171,7 +191,7 @@ export default function OrdersTable({items}:{items:Order[]}){
                     >
                       View Details
                     </motion.button>
-                    
+
                     {order.status === 'pending' && (
                       <motion.button
                         whileHover={{ scale: 1.05 }}

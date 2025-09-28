@@ -9,7 +9,7 @@
   
   body {
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #f8fafc;
     min-height: 100vh;
   }
 }
@@ -128,8 +128,8 @@
   .orders-grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 2rem;
-    margin-top: 2rem;
+    /* gap: 2rem; */
+    /* margin-top: 2rem; */
   }
 
   @media (min-width: 768px) {
