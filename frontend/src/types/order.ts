@@ -1,7 +1,8 @@
+export type Status = 'pending' | 'approved' | 'rejected';
 export type Order = {
   id: string;
   customer: string;
-  status: 'pending' | 'approved' | 'rejected';
+  status: Status;
   total: number;
   createdAt: string;
   isApproved: boolean;

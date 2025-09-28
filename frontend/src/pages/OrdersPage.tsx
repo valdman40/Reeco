@@ -6,6 +6,8 @@ import StatusFilter from '../components/StatusFilter';
 import OrdersTable from '../components/OrdersTable';
 import Pagination from '../components/Pagination';
 import OrderDetail from '../components/OrderDetail';
+import ErrorDisplay from '../components/common/ErrorDisplay';
+import LoadingMessage from '../components/common/LoadingMessage';
 
 export default function OrdersPage() {
   const [params] = useSearchParams();
@@ -13,7 +15,12 @@ export default function OrdersPage() {
   const q = params.get('q') ?? undefined;
   const status = params.get('status') ?? undefined;
   const limit = 20;
-  const { data, isLoading, isError } = useOrders({ page, limit, q, status });
+  const { data, isLoading, isError, error } = useOrders({
+    page,
+    limit,
+    q,
+    status,
+  });
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -70,58 +77,18 @@ export default function OrdersPage() {
           style={{ marginBottom: '2rem' }}
         >
           <div className="p-8">
-            {isLoading && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="flex flex-col items-center justify-center py-20"
-              >
-                <div className="relative">
-                  <div className="w-20 h-20 border-4 border-purple-200 rounded-full animate-spin"></div>
-                  <div className="w-20 h-20 border-4 border-purple-600 rounded-full animate-spin absolute top-0 left-0 border-t-transparent"></div>
-                </div>
-                <motion.p
-                  animate={{ opacity: [0.5, 1, 0.5] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  className="text-gray-600 mt-6 text-lg font-medium"
-                >
-                  Loading your orders...
-                </motion.p>
-              </motion.div>
-            )}
+            
+            {isLoading && <LoadingMessage message="Loading your orders..." />}
 
             {isError && (
-              <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                className="bg-gradient-to-r from-red-50 via-red-50 to-pink-50 border border-red-200 rounded-2xl p-8"
-              >
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                      <svg
-                        className="h-6 w-6 text-red-500"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </div>
-                  </div>
-                  <div className="ml-6">
-                    <h3 className="text-xl font-bold text-red-800 mb-2">
-                      Error Loading Orders
-                    </h3>
-                    <p className="text-red-600">
-                      There was a problem loading your orders. Please try again.
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
+              <ErrorDisplay
+                title="Error Loading Orders"
+                message={
+                  error instanceof Error
+                    ? error.message
+                    : 'There was a problem loading your orders. Please try again.'
+                }
+              />
             )}
 
             {data && (
@@ -130,10 +97,8 @@ export default function OrdersPage() {
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5 }}
               >
+                <Pagination total={data.total} limit={data.limit} />
                 <OrdersTable items={data.items} />
-                <div className="mt-8">
-                  <Pagination total={data.total} limit={data.limit} />
-                </div>
               </motion.div>
             )}
           </div>

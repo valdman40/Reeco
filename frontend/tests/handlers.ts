@@ -40,7 +40,7 @@ export const handlers = [
   http.get('http://localhost:3001/orders', ({ request }) => {
     const url = new URL(request.url);
     const page = Number(url.searchParams.get('page') ?? '1');
-    const limit = Number(url.searchParams.get('limit') ?? '15');
+    const limit = Number(url.searchParams.get('limit') ?? '5');
     const status =
       url.searchParams.get('status') === 'undefined'
         ? ''
@@ -74,7 +74,7 @@ export const handlers = [
     return HttpResponse.json({
       items,
       page,
-      limit,
+      limit: 5,
       total: filteredOrders.length,
     });
   }),

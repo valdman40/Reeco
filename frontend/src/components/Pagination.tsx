@@ -1,6 +1,7 @@
 import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
+import { MoreHorizontal } from 'lucide-react';
+import NextPrevButton from './common/buttons/NextPrevButton';
 
 export default function Pagination({
   total,
@@ -48,26 +49,8 @@ export default function Pagination({
     <div className="flex items-center justify-between mt-8">
       {/* Mobile Pagination */}
       <div className="flex flex-1 justify-between sm:hidden">
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          disabled={p <= 1}
-          onClick={() => goTo(p - 1)}
-          className="button-modern disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:transform-none"
-        >
-          <ChevronLeft className="w-4 h-4 mr-2" />
-          Previous
-        </motion.button>
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          disabled={p >= max}
-          onClick={() => goTo(p + 1)}
-          className="button-modern disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:transform-none"
-        >
-          Next
-          <ChevronRight className="w-4 h-4 ml-2" />
-        </motion.button>
+        <NextPrevButton type="prev" disabled={p <= 1} onClick={() => goTo(p - 1)} />
+        <NextPrevButton type="next" disabled={p >= max} onClick={() => goTo(p + 1)} />
       </div>
 
       {/* Desktop Pagination */}
@@ -84,15 +67,12 @@ export default function Pagination({
 
         <div className="flex items-center space-x-2">
           {/* Previous Button */}
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <NextPrevButton
+            type="prev"
             onClick={() => goTo(p - 1)}
             disabled={p <= 1}
-            className="p-3 rounded-xl bg-white border-2 border-gray-200 text-gray-600 hover:border-purple-300 hover:text-purple-600 hover:bg-purple-50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:transform-none"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </motion.button>
+            iconOnly
+          />
 
           {/* Page Numbers */}
           <div className="flex items-center space-x-1">
@@ -121,15 +101,12 @@ export default function Pagination({
           </div>
 
           {/* Next Button */}
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <NextPrevButton
+            type="next"
             onClick={() => goTo(p + 1)}
             disabled={p >= max}
-            className="p-3 rounded-xl bg-white border-2 border-gray-200 text-gray-600 hover:border-purple-300 hover:text-purple-600 hover:bg-purple-50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:transform-none"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </motion.button>
+            iconOnly
+          />
         </div>
       </div>
     </div>
