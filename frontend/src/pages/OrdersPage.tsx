@@ -1,5 +1,6 @@
 import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useMemo } from 'react';
 import { useOrders } from '../hooks/useOrders';
 import SearchInput from '../components/SearchInput';
 import StatusFilter from '../components/StatusFilter';
@@ -15,12 +16,16 @@ export default function OrdersPage() {
   const q = params.get('q') ?? undefined;
   const status = params.get('status') ?? undefined;
   const limit = 20;
-  const { data, isLoading, isError, error } = useOrders({
+  
+  // Memoize query params to prevent unnecessary refetches
+  const queryParams = useMemo(() => ({
     page,
     limit,
     q,
     status,
-  });
+  }), [page, limit, q, status]);
+  
+  const { data, isLoading, isError, error } = useOrders(queryParams);
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -91,16 +96,14 @@ export default function OrdersPage() {
               />
             )}
 
-            {data && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5 }}
-              >
-                <Pagination total={data.total} limit={data.limit} />
-                <OrdersTable items={data.items} />
-              </motion.div>
-            )}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
+            >
+              <Pagination total={data?.total || 0} limit={data?.limit || limit} />
+              <OrdersTable items={data?.items || []} />
+            </motion.div>
           </div>
         </motion.div>
       </div>

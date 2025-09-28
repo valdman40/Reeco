@@ -12,5 +12,6 @@ export function useOrders(params: {
   return useQuery<OrdersResponse>({
     queryKey: queryKeys.orders(params),
     queryFn: () => apiFetch(`/orders?${new URLSearchParams(params as any)}`),
+    placeholderData: (previousData) => previousData, // Keep previous data during refetch
   });
 }

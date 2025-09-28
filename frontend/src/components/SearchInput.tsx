@@ -1,25 +1,45 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Search, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useDebounce } from '../hooks/useDebounce';
 
 export default function SearchInput() {
   const [params, set] = useSearchParams();
   const [val, setVal] = useState(params.get('q') ?? '');
   const [focused, setFocused] = useState(false);
+  
+  // Use custom debounce hook
+  const debouncedVal = useDebounce(val, 300);
+
+  // Update URL when debounced value changes
+  useEffect(() => {
+    const newParams = new URLSearchParams(window.location.search);
+    const currentQuery = newParams.get('q') ?? '';
+    
+    // If debounced value matches current URL, no need to update
+    if (debouncedVal === currentQuery) return;
+    
+    if (debouncedVal.trim()) {
+      newParams.set('q', debouncedVal.trim());
+    } else {
+      newParams.delete('q');
+    }
+    newParams.set('page', '1');
+    
+    set(newParams);
+  }, [debouncedVal]);
 
   function onChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setVal(e.target.value);
-    params.set('q', e.target.value);
-    params.set('page', '1');
-    set(params);
+    setVal(e.target.value); // Only update local state immediately
   }
 
   function clearSearch() {
     setVal('');
-    params.delete('q');
-    params.set('page', '1');
-    set(params);
+    const newParams = new URLSearchParams(window.location.search);
+    newParams.delete('q');
+    newParams.set('page', '1');
+    set(newParams);
   }
 
   return (

@@ -4,19 +4,22 @@ import { sortOrders } from '../utils/clientSort';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Hash, ArrowUpDown } from 'lucide-react';
 import OrderCard from './OrderCard';
+import { useEffect } from 'react';
 
 export default function OrdersTable({ items }: { items: Order[] }) {
   const [params, set] = useSearchParams();
   const sort = params.get('sort') ?? 'createdAt:desc';
   const sorted = sortOrders(items, sort);
 
+  useEffect(()=>{
+    console.log('OrdersTable first render')
+  },[])
+
   function toggle(f: string) {
     const dir = sort.indexOf('desc') > -1 ? 'asc' : 'desc';
     params.set('sort', `${f}:${dir}`);
     set(params);
   }
-
-
 
   return (
     <div className="orders-container">
