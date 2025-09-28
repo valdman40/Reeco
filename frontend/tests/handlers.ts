@@ -49,6 +49,10 @@ export const handlers = [
       url.searchParams.get('q') === 'undefined'
         ? ''
         : url.searchParams.get('q');
+    const sort =
+      url.searchParams.get('sort') === 'undefined'
+        ? 'createdAt:desc'
+        : url.searchParams.get('sort') ?? 'createdAt:desc';
 
     let filteredOrders = [...orders];
 
@@ -66,6 +70,43 @@ export const handlers = [
         (order) =>
           order.customer.toLowerCase().includes(query) ||
           order.id.toLowerCase().includes(query)
+      );
+    }
+
+    // Server-side sorting
+    if (sort) {
+      const [field, direction] = sort.split(':');
+      console.log(`🔧 MSW: Sorting by ${field}:${direction}`);
+
+      filteredOrders.sort((a, b) => {
+        let comparison = 0;
+
+        if (field === 'total') {
+          comparison = a.total - b.total;
+        } else if (field === 'createdAt') {
+          comparison =
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        } else if (field === 'customer') {
+          comparison = a.customer.localeCompare(b.customer);
+        }
+
+        return direction === 'desc' ? -comparison : comparison;
+      });
+
+      console.log(
+        `🔧 MSW: First 3 results:`,
+        filteredOrders.slice(0, 3).map((o) => ({
+          id: o.id,
+          field: field,
+          value:
+            field === 'createdAt'
+              ? new Date(o.createdAt).toLocaleDateString()
+              : field === 'total'
+              ? o.total
+              : field === 'customer'
+              ? o.customer
+              : 'unknown',
+        }))
       );
     }
 

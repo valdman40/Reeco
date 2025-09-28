@@ -17,13 +17,17 @@ export default function OrdersPage() {
   const status = params.get('status') ?? undefined;
   const limit = 20;
   
+  // Include sort parameter for server-side sorting
+  const sort = params.get('sort') ?? 'createdAt:desc';
+  
   // Memoize query params to prevent unnecessary refetches
   const queryParams = useMemo(() => ({
     page,
     limit,
     q,
     status,
-  }), [page, limit, q, status]);
+    sort,  // ← Now included in server request!
+  }), [page, limit, q, status, sort]);
   
   const { data, isLoading, isError, error } = useOrders(queryParams);
 

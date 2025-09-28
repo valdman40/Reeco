@@ -8,6 +8,7 @@ export function useOrders(params: {
   limit: number;
   q?: string;
   status?: string;
+  sort?: string;
 }) {
   return useQuery<OrdersResponse>({
     queryKey: queryKeys.orders(params),

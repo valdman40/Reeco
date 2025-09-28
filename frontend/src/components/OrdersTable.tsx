@@ -1,6 +1,5 @@
 import { Order } from '../types/order';
 import { useSearchParams } from 'react-router-dom';
-import { sortOrders } from '../utils/clientSort';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Hash, ArrowUpDown } from 'lucide-react';
 import OrderCard from './OrderCard';
@@ -9,14 +8,22 @@ import { useEffect } from 'react';
 export default function OrdersTable({ items }: { items: Order[] }) {
   const [params, set] = useSearchParams();
   const sort = params.get('sort') ?? 'createdAt:desc';
-  const sorted = sortOrders(items, sort);
+  // Remove client-side sorting - server now handles this
+  const sorted = items;
 
   useEffect(()=>{
     console.log('OrdersTable first render')
   },[])
 
   function toggle(f: string) {
-    const dir = sort.indexOf('desc') > -1 ? 'asc' : 'desc';
+    const [currentField, currentDir] = sort.split(':');
+    
+    // If clicking the same field, toggle direction
+    // If clicking a different field, start with desc (most common for totals/dates)
+    const dir = currentField === f 
+      ? (currentDir === 'desc' ? 'asc' : 'desc')
+      : 'desc';
+      
     params.set('sort', `${f}:${dir}`);
     set(params);
   }
@@ -33,7 +40,14 @@ export default function OrdersTable({ items }: { items: Order[] }) {
           className="sort-button"
         >
           <ArrowUpDown style={{ width: '1rem', height: '1rem' }} />
-          <span>Sort by Total</span>
+          <span>
+            Sort by Total
+            {sort.startsWith('total:') && (
+              <span style={{ marginLeft: '4px', fontSize: '0.8em', opacity: 0.7 }}>
+                ({sort.includes('desc') ? '↓' : '↑'})
+              </span>
+            )}
+          </span>
         </motion.button>
       </div>
 
