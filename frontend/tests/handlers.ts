@@ -44,14 +44,8 @@ export const handlers = [
     const url = new URL(request.url);
     const page = Number(url.searchParams.get('page') ?? '1');
     const limit = Number(url.searchParams.get('limit') ?? '5');
-    const status =
-      url.searchParams.get('status') === 'undefined'
-        ? ''
-        : url.searchParams.get('status');
-    const q =
-      url.searchParams.get('q') === 'undefined'
-        ? ''
-        : url.searchParams.get('q');
+    const status = url.searchParams.get('status') === 'undefined' ? '' : url.searchParams.get('status');
+    const q = url.searchParams.get('q') === 'undefined' ? '' : url.searchParams.get('q');
     const sort =
       url.searchParams.get('sort') === 'undefined'
         ? 'createdAt:desc'
@@ -61,18 +55,14 @@ export const handlers = [
 
     // Filter by status
     if (status) {
-      filteredOrders = filteredOrders.filter(
-        (order) => order.status === status
-      );
+      filteredOrders = filteredOrders.filter((order) => order.status === status);
     }
 
     // Filter by search query
     if (q) {
       const query = q.toLowerCase();
       filteredOrders = filteredOrders.filter(
-        (order) =>
-          order.customer.toLowerCase().includes(query) ||
-          order.id.toLowerCase().includes(query)
+        (order) => order.customer.toLowerCase().includes(query) || order.id.toLowerCase().includes(query)
       );
     }
 
@@ -86,8 +76,7 @@ export const handlers = [
         if (field === 'total') {
           comparison = a.total - b.total;
         } else if (field === 'createdAt') {
-          comparison =
-            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+          comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
         } else if (field === 'customer') {
           comparison = a.customer.localeCompare(b.customer);
         }
@@ -106,9 +95,9 @@ export const handlers = [
         (sort ? ` sorted by ${sort}` : '')
     );
     console.log(
-      `🔧 MSW: Pagination - page ${page}/${Math.ceil(
-        filteredOrders.length / limit
-      )}, showing ${items.length} of ${filteredOrders.length} total matches`
+      `🔧 MSW: Pagination - page ${page}/${Math.ceil(filteredOrders.length / limit)}, showing ${items.length} of ${
+        filteredOrders.length
+      } total matches`
     );
 
     return HttpResponse.json({
@@ -127,21 +116,18 @@ export const handlers = [
     return HttpResponse.json(order);
   }),
 
-  http.patch(
-    'http://localhost:3001/orders/:id',
-    async ({ params, request }) => {
-      const order = orders.find((o) => o.id === params.id);
-      if (!order) {
-        return new HttpResponse(null, { status: 404 });
-      }
-
-      // Parse the request body to get the actual isApproved value
-      const body = (await request.json()) as { isApproved: boolean };
-
-      // Update the order in memory for testing
-      order.isApproved = body.isApproved;
-      order.status = body.isApproved ? 'approved' : 'pending';
-      return new HttpResponse(null, { status: 204 });
+  http.patch('http://localhost:3001/orders/:id', async ({ params, request }) => {
+    const order = orders.find((o) => o.id === params.id);
+    if (!order) {
+      return new HttpResponse(null, { status: 404 });
     }
-  ),
+
+    // Parse the request body to get the actual isApproved value
+    const body = (await request.json()) as { isApproved: boolean };
+
+    // Update the order in memory for testing
+    order.isApproved = body.isApproved;
+    order.status = body.isApproved ? 'approved' : 'pending';
+    return new HttpResponse(null, { status: 204 });
+  }),
 ];

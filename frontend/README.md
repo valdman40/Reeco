@@ -13,7 +13,7 @@ npm install
 npm run dev     # Starts on http://localhost:5173
 ```
 
-Make sure you have a backend running on `http://localhost:3001` (Node.js) or `http://localhost:5000` (.NET).
+Make sure you have a backend running on `http://localhost:3001` (Node.js).
 
 ## Features
 

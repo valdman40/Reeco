@@ -27,22 +27,41 @@ export default function OrdersTable({ items }: { items: Order[] }) {
     <div className="orders-container">
       {/* Sort Controls */}
       <div className="orders-header">
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => toggle('total')}
-          className="sort-button"
-        >
-          <ArrowUpDown style={{ width: '1rem', height: '1rem' }} />
-          <span>
-            Sort by Total
-            {sort.startsWith('total:') && (
-              <span style={{ marginLeft: '4px', fontSize: '0.8em', opacity: 0.7 }}>
-                ({sort.includes('desc') ? '↓' : '↑'})
-              </span>
-            )}
-          </span>
-        </motion.button>
+        <motion.div style={{ display: 'flex', gap: '8px' }}>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => toggle('total')}
+            className="sort-button"
+          >
+            <ArrowUpDown style={{ width: '1rem', height: '1rem' }} />
+            <span>
+              Sort by Total
+              {sort.startsWith('total:') && (
+                <span style={{ marginLeft: '4px', fontSize: '0.8em', opacity: 0.7 }}>
+                  ({sort.includes('desc') ? '↓' : '↑'})
+                </span>
+              )}
+            </span>
+          </motion.button>
+          
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => toggle('createdAt')}
+            className="sort-button"
+          >
+            <ArrowUpDown style={{ width: '1rem', height: '1rem' }} />
+            <span>
+              Sort by Created Date
+              {sort.startsWith('createdAt:') && (
+                <span style={{ marginLeft: '4px', fontSize: '0.8em', opacity: 0.7 }}>
+                  ({sort.includes('desc') ? '↓' : '↑'})
+                </span>
+              )}
+            </span>
+          </motion.button>
+        </motion.div>
       </div>
 
       {/* Orders Grid */}

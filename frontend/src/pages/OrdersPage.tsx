@@ -9,7 +9,6 @@ import Pagination from '../components/Pagination';
 import OrderDetail from '../components/OrderDetail';
 import ErrorDisplay from '../components/common/ErrorDisplay';
 import LoadingMessage from '../components/common/LoadingMessage';
-import ResultsSummary from '../components/ResultsSummary';
 
 export default function OrdersPage() {
   const [params] = useSearchParams();
