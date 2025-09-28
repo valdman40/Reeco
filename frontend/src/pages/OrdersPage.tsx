@@ -9,13 +9,14 @@ import Pagination from '../components/Pagination';
 import OrderDetail from '../components/OrderDetail';
 import ErrorDisplay from '../components/common/ErrorDisplay';
 import LoadingMessage from '../components/common/LoadingMessage';
+import ResultsSummary from '../components/ResultsSummary';
 
 export default function OrdersPage() {
   const [params] = useSearchParams();
   const page = Number(params.get('page') ?? '1');
   const q = params.get('q') ?? undefined;
   const status = params.get('status') ?? undefined;
-  const limit = 20;
+  const limit = 6;
   
   // Include sort parameter for server-side sorting
   const sort = params.get('sort') ?? 'createdAt:desc';
@@ -82,13 +83,12 @@ export default function OrdersPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
-          className="card-modern rounded-2xl"
+          className="p-8"
           style={{ marginBottom: '2rem' }}
         >
-          <div className="p-8">
+          <div>
             
             {isLoading && <LoadingMessage message="Loading your orders..." />}
-
             {isError && (
               <ErrorDisplay
                 title="Error Loading Orders"
@@ -107,6 +107,7 @@ export default function OrdersPage() {
             >
               <Pagination total={data?.total || 0} limit={data?.limit || limit} />
               <OrdersTable items={data?.items || []} />
+              <Pagination total={data?.total || 0} limit={data?.limit || limit} />
             </motion.div>
           </div>
         </motion.div>

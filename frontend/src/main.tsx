@@ -8,11 +8,10 @@ import { queryClient } from './lib/queryClient';
 
 async function enableMocking() {
   if (import.meta.env.VITE_USE_MOCK_DATA !== 'true') {
-    console.log('Mock data is disabled');
     return;
   }
 
-  console.log('Starting mock service worker...');
+  // console.log('Starting mock service worker...');
   const { worker } = await import('./mocks/browser');
 
   return worker
@@ -20,7 +19,7 @@ async function enableMocking() {
       onUnhandledRequest: 'warn',
     })
     .then(() => {
-      console.log('Mock service worker started successfully');
+      // console.log('Mock service worker started successfully');
     });
 }
 

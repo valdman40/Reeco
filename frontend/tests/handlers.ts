@@ -20,18 +20,21 @@ const customerNames = [
 
 const statuses = ['pending', 'approved', 'rejected'];
 
-const orders = Array.from({ length: 15 }).map((_, i) => {
-  const statusIndex = i % 3;
+// Generate more realistic dataset for pagination testing
+const orders = Array.from({ length: 150 }).map((_, i) => {
+  const statusIndex = Math.floor(Math.random() * 3); // Random status
+  const customerIndex = i % customerNames.length;
   const baseDate = new Date();
-  baseDate.setDate(baseDate.getDate() - (i % 30)); // Spread orders across last 30 days
+  baseDate.setDate(baseDate.getDate() - (i % 365)); // Spread orders across last year
+  const isApproved = Math.random() > 0.5; // Random approval status
 
   return {
     id: `ord-${String(i + 1000).padStart(4, '0')}`,
-    customer: customerNames[i] || `Customer ${i + 1}`,
+    customer: customerNames[customerIndex],
     status: statuses[statusIndex],
     total: Math.floor(Math.random() * 2000) + 50, // Random totals between $50-$2050
     createdAt: baseDate.toISOString(),
-    isApproved: statusIndex === 1,
+    isApproved: isApproved,
     lineItemCount: Math.floor(Math.random() * 8) + 1, // 1-8 line items
   };
 });
@@ -76,7 +79,6 @@ export const handlers = [
     // Server-side sorting
     if (sort) {
       const [field, direction] = sort.split(':');
-      console.log(`🔧 MSW: Sorting by ${field}:${direction}`);
 
       filteredOrders.sort((a, b) => {
         let comparison = 0;
@@ -92,30 +94,27 @@ export const handlers = [
 
         return direction === 'desc' ? -comparison : comparison;
       });
-
-      console.log(
-        `🔧 MSW: First 3 results:`,
-        filteredOrders.slice(0, 3).map((o) => ({
-          id: o.id,
-          field: field,
-          value:
-            field === 'createdAt'
-              ? new Date(o.createdAt).toLocaleDateString()
-              : field === 'total'
-              ? o.total
-              : field === 'customer'
-              ? o.customer
-              : 'unknown',
-        }))
-      );
     }
 
     const start = (page - 1) * limit;
     const items = filteredOrders.slice(start, start + limit);
+
+    console.log(
+      `🔧 MSW: Query Results - ${filteredOrders.length} matches found` +
+        (q ? ` for search "${q}"` : '') +
+        (status ? ` with status "${status}"` : '') +
+        (sort ? ` sorted by ${sort}` : '')
+    );
+    console.log(
+      `🔧 MSW: Pagination - page ${page}/${Math.ceil(
+        filteredOrders.length / limit
+      )}, showing ${items.length} of ${filteredOrders.length} total matches`
+    );
+
     return HttpResponse.json({
       items,
       page,
-      limit: 5,
+      limit, // ← Now uses actual limit parameter instead of hardcoded 5
       total: filteredOrders.length,
     });
   }),

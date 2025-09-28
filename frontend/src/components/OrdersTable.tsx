@@ -3,17 +3,12 @@ import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Hash, ArrowUpDown } from 'lucide-react';
 import OrderCard from './OrderCard';
-import { useEffect } from 'react';
 
 export default function OrdersTable({ items }: { items: Order[] }) {
   const [params, set] = useSearchParams();
   const sort = params.get('sort') ?? 'createdAt:desc';
   // Remove client-side sorting - server now handles this
   const sorted = items;
-
-  useEffect(()=>{
-    console.log('OrdersTable first render')
-  },[])
 
   function toggle(f: string) {
     const [currentField, currentDir] = sort.split(':');
@@ -32,7 +27,6 @@ export default function OrdersTable({ items }: { items: Order[] }) {
     <div className="orders-container">
       {/* Sort Controls */}
       <div className="orders-header">
-        <h3 className="orders-title">Recent Orders ({sorted.length})</h3>
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
