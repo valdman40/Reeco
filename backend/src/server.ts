@@ -23,6 +23,43 @@ app.use(
 );
 app.use(express.json());
 
+// Custom request logging middleware
+app.use((req, res, next) => {
+  const start = Date.now();
+  const timestamp = new Date().toISOString();
+  
+  // Log incoming request
+  console.log(`[${timestamp}] ${req.method} ${req.url} - ${req.ip || 'unknown IP'}`);
+  
+  // Log request body for non-GET requests (excluding sensitive data)
+  if (req.method !== 'GET' && Object.keys(req.body || {}).length > 0) {
+    console.log(`[${timestamp}] Request body:`, JSON.stringify(req.body, null, 2));
+  }
+  
+  // Log query parameters if present
+  if (Object.keys(req.query).length > 0) {
+    console.log(`[${timestamp}] Query params:`, JSON.stringify(req.query, null, 2));
+  }
+  
+  // Override res.json to log response
+  const originalJson = res.json;
+  res.json = function(data) {
+    const duration = Date.now() - start;
+    console.log(`[${timestamp}] ${req.method} ${req.url} - ${res.statusCode} - ${duration}ms`);
+    
+    // Log response data for errors or if it's small
+    if (res.statusCode >= 400 || JSON.stringify(data).length < 500) {
+      console.log(`[${timestamp}] Response:`, JSON.stringify(data, null, 2));
+    } else {
+      console.log(`[${timestamp}] Response: [Large response - ${JSON.stringify(data).length} chars]`);
+    }
+    
+    return originalJson.call(this, data);
+  };
+  
+  next();
+});
+
 app.get("/health", (_req, res) => res.json({ ok: true }));
 
 app.get("/orders", (req, res, next) => {
