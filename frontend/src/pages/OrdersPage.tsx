@@ -1,25 +1,25 @@
-import {useSearchParams} from 'react-router-dom';
-import {motion} from 'framer-motion';
-import {useOrders} from '../hooks/useOrders';
+import { useSearchParams } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { useOrders } from '../hooks/useOrders';
 import SearchInput from '../components/SearchInput';
 import StatusFilter from '../components/StatusFilter';
 import OrdersTable from '../components/OrdersTable';
 import Pagination from '../components/Pagination';
 import OrderDetail from '../components/OrderDetail';
 
-export default function OrdersPage(){
-  const [params]=useSearchParams();
-  const page=Number(params.get('page')??'1');
-  const q=params.get('q')??undefined;
-  const status=params.get('status')??undefined;
-  const limit=20;
-  const {data,isLoading,isError}=useOrders({page,limit,q,status});
-  
+export default function OrdersPage() {
+  const [params] = useSearchParams();
+  const page = Number(params.get('page') ?? '1');
+  const q = params.get('q') ?? undefined;
+  const status = params.get('status') ?? undefined;
+  const limit = 20;
+  const { data, isLoading, isError } = useOrders({ page, limit, q, status });
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div style={{ maxWidth: '1280px' }} className="mx-auto px-6 lg:px-8">
         {/* Page Header */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -30,40 +30,44 @@ export default function OrdersPage(){
         </motion.div>
 
         {/* Search Input */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
           style={{ marginBottom: '1.5rem' }}
         >
           <div style={{ maxWidth: '30%' }}>
-            <SearchInput/>
+            <SearchInput />
           </div>
         </motion.div>
 
         {/* Filter Dropdown */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
           style={{ marginBottom: '2rem' }}
         >
           <div style={{ maxWidth: '30%' }}>
-            <StatusFilter/>
+            <StatusFilter />
           </div>
         </motion.div>
 
+        <div style={{ marginTop: '2rem' }}>
+          <OrderDetail />
+        </div>
+
         {/* Orders List */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
           className="card-modern rounded-2xl"
           style={{ marginBottom: '2rem' }}
         >
-          <div className="p-8">            
+          <div className="p-8">
             {isLoading && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 className="flex flex-col items-center justify-center py-20"
@@ -72,7 +76,7 @@ export default function OrdersPage(){
                   <div className="w-20 h-20 border-4 border-purple-200 rounded-full animate-spin"></div>
                   <div className="w-20 h-20 border-4 border-purple-600 rounded-full animate-spin absolute top-0 left-0 border-t-transparent"></div>
                 </div>
-                <motion.p 
+                <motion.p
                   animate={{ opacity: [0.5, 1, 0.5] }}
                   transition={{ duration: 2, repeat: Infinity }}
                   className="text-gray-600 mt-6 text-lg font-medium"
@@ -81,9 +85,9 @@ export default function OrdersPage(){
                 </motion.p>
               </motion.div>
             )}
-            
+
             {isError && (
-              <motion.div 
+              <motion.div
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 className="bg-gradient-to-r from-red-50 via-red-50 to-pink-50 border border-red-200 rounded-2xl p-8"
@@ -103,25 +107,21 @@ export default function OrdersPage(){
                 </div>
               </motion.div>
             )}
-            
+
             {data && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5 }}
               >
-                <OrdersTable items={data.items}/>
+                <OrdersTable items={data.items} />
                 <div className="mt-8">
-                  <Pagination total={data.total} limit={data.limit}/>
+                  <Pagination total={data.total} limit={data.limit} />
                 </div>
               </motion.div>
             )}
           </div>
         </motion.div>
-        
-        <div style={{ marginTop: '2rem' }}>
-          <OrderDetail/>
-        </div>
       </div>
     </div>
   );
