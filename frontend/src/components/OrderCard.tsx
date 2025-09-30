@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { format } from 'date-fns';
 import {
   User,
@@ -22,9 +22,14 @@ interface OrderCardProps {
 
 const OrderCard = React.forwardRef<HTMLDivElement, OrderCardProps>(({ order, index }, ref) => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const approve = useApproveOrder();
 
-
+  const handleOrderNavigation = () => {
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set('id', order.id);
+    navigate(`/orders?${newParams.toString()}`);
+  };
 
   const statusConfig = getStatusConfig(order.status);
 
@@ -40,7 +45,7 @@ const OrderCard = React.forwardRef<HTMLDivElement, OrderCardProps>(({ order, ind
         delay: index * 0.05,
       }}
       whileHover={{ y: -8, scale: 1.02 }}
-      onClick={() => navigate(`/orders?id=${order.id}`)}
+      onClick={handleOrderNavigation}
       className="order-card"
     >
       <div className="flex flex-col" style={{ gap: '1.5rem' }}>
@@ -67,7 +72,7 @@ const OrderCard = React.forwardRef<HTMLDivElement, OrderCardProps>(({ order, ind
             className="view-button"
             onClick={(e) => {
               e.stopPropagation();
-              navigate(`/orders?id=${order.id}`);
+              handleOrderNavigation();
             }}
           >
             <Eye style={{ width: '1rem', height: '1rem' }} />
@@ -122,7 +127,7 @@ const OrderCard = React.forwardRef<HTMLDivElement, OrderCardProps>(({ order, ind
             <Button
                 onClick={(e) => {
                     e.stopPropagation();
-                    navigate(`/orders?id=${order.id}`);
+                    handleOrderNavigation();
                 }}
                 variant='primary'
             >

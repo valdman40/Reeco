@@ -11,7 +11,6 @@ interface OrderDetailProps {
 
 export default function OrderDetail({ orderId }: OrderDetailProps) {
   let { data, isLoading } = useOrder(orderId);
-  isLoading = false;
 
   return (
     <div className="p-6">

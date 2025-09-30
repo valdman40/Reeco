@@ -12,12 +12,10 @@ export function useApproveOrder() {
         body: JSON.stringify({ isApproved }),
       });
     },
-    onSuccess: (data, variables) => {
-      console.log('✅ Approval successful!', { data, variables });
+    onSettled: (_data, _error, variables) => {
+      // Invalidate and refetch orders list and individual order queries
       queryClient.invalidateQueries({ queryKey: ['orders'] });
-    },
-    onError: (error, variables) => {
-      console.error('❌ Approval failed!', { error, variables });
+      queryClient.invalidateQueries({ queryKey: ['order', variables.id] });
     },
   });
 }
