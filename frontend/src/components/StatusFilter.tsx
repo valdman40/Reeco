@@ -14,6 +14,7 @@ export default function StatusFilter() {
     { value: 'pending', label: 'Pending', color: 'yellow' },
     { value: 'approved', label: 'Approved', color: 'green' },
     { value: 'rejected', label: 'Rejected', color: 'red' },
+    { value: 'cancelled', label: 'Cancelled', color: 'gray' },
   ];
 
   function onChange(value: string) {
@@ -35,6 +36,8 @@ export default function StatusFilter() {
         return 'bg-green-100 text-green-700 border-green-200';
       case 'rejected':
         return 'bg-red-100 text-red-700 border-red-200';
+      case 'cancelled':
+        return 'bg-gray-100 text-gray-700 border-gray-200';
       default:
         return 'bg-gray-100 text-gray-700 border-gray-200';
     }
@@ -142,6 +145,8 @@ export default function StatusFilter() {
                             ? '#22c55e'
                             : status.value === 'rejected'
                             ? '#ef4444'
+                            : status.value === 'cancelled'
+                            ? '#6b7280'
                             : '#9ca3af',
                       }}
                     ></div>

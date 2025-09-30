@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle, Clock, XCircle } from 'lucide-react';
+import { CheckCircle, Clock, XCircle, Ban } from 'lucide-react';
 import { Status } from '../types/order';
 
 export interface StatusConfig {
@@ -35,6 +35,14 @@ export const getStatusConfig = (status: Status): StatusConfig => {
         color: 'red',
         badgeClass: 'status-badge rejected',
         indicatorClass: 'rejected',
+      };
+    case 'cancelled':
+      return {
+        icon: React.createElement(Ban, { className: 'w-5 h-5' }),
+        badge: 'bg-gradient-to-r from-gray-100 to-slate-100 text-gray-800 border-gray-200',
+        color: 'gray',
+        badgeClass: 'status-badge cancelled',
+        indicatorClass: 'cancelled',
       };
     default:
       return {

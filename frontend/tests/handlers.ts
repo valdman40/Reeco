@@ -18,23 +18,26 @@ const customerNames = [
   'Olivia White',
 ];
 
-const statuses = ['pending', 'approved', 'rejected'];
+const statuses = ['pending', 'approved', 'rejected', 'cancelled'];
 
 // Generate more realistic dataset for pagination testing
 const orders = Array.from({ length: 150 }).map((_, i) => {
-  const statusIndex = Math.floor(Math.random() * 3); // Random status
+  const statusIndex = Math.floor(Math.random() * 4); // Random status (now includes cancelled)
   const customerIndex = i % customerNames.length;
   const baseDate = new Date();
   baseDate.setDate(baseDate.getDate() - (i % 365)); // Spread orders across last year
-  const isApproved = Math.random() > 0.5; // Random approval status
+  const status = statuses[statusIndex];
+  const isApproved = status === 'approved' || (status === 'pending' && Math.random() > 0.5); // Random approval status
+  const isCancelled = status === 'cancelled'; // Set cancelled based on status
 
   return {
     id: `ord-${String(i + 1000).padStart(4, '0')}`,
     customer: customerNames[customerIndex],
-    status: statuses[statusIndex],
+    status: status,
     total: Math.floor(Math.random() * 2000) + 50, // Random totals between $50-$2050
     createdAt: baseDate.toISOString(),
     isApproved: isApproved,
+    isCancelled: isCancelled,
     lineItemCount: Math.floor(Math.random() * 8) + 1, // 1-8 line items
   };
 });
@@ -122,12 +125,23 @@ export const handlers = [
       return new HttpResponse(null, { status: 404 });
     }
 
-    // Parse the request body to get the actual isApproved value
-    const body = (await request.json()) as { isApproved: boolean };
+    // Parse the request body to get the update values
+    const body = (await request.json()) as { isApproved?: boolean; isCancelled?: boolean };
 
     // Update the order in memory for testing
-    order.isApproved = body.isApproved;
-    order.status = body.isApproved ? 'approved' : 'pending';
+    if (body.isApproved !== undefined) {
+      order.isApproved = body.isApproved;
+      order.status = body.isApproved ? 'approved' : 'pending';
+    }
+
+    if (body.isCancelled !== undefined) {
+      order.isCancelled = body.isCancelled;
+      if (body.isCancelled) {
+        order.status = 'cancelled';
+        order.isApproved = false; // Cancelled orders cannot be approved
+      }
+    }
+
     return new HttpResponse(null, { status: 204 });
   }),
 ];

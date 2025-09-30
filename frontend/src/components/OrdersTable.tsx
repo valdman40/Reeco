@@ -1,15 +1,21 @@
 import { Order } from '../types/order';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Hash, ArrowUpDown } from 'lucide-react';
+import { Hash, ArrowUpDown, X } from 'lucide-react';
 import OrderCard from './OrderCard';
 import Button from './common/buttons/Button';
+import { useOrderSelection } from '../hooks/useOrderSelection';
+import { useCancelOrder } from '../hooks/useCancelOrder';
 
 export default function OrdersTable({ items }: { items: Order[] }) {
   const [params, set] = useSearchParams();
   const sort = params.get('sort') ?? 'createdAt:desc';
   // Remove client-side sorting - server now handles this
   const sorted = items;
+  
+  // Selection management
+  const selection = useOrderSelection();
+  const cancelOrder = useCancelOrder();
 
   function toggle(f: string) {
     const [currentField, currentDir] = sort.split(':');
@@ -24,49 +30,121 @@ export default function OrdersTable({ items }: { items: Order[] }) {
     set(params);
   }
 
+  const handleCancelSelected = () => {
+    selection.selectedOrderIds.forEach(id => {
+      cancelOrder.mutate({ id });
+    });
+    selection.clearSelection();
+  };
+
   return (
     <div className="orders-container">
-      {/* Sort Controls */}
+      {/* Selection and Sort Controls */}
       <div className="orders-header">
-        <motion.div style={{ display: 'flex', gap: '8px' }}>
-          <Button
-            onClick={() => toggle('total')}
-            variant="secondary"
-            className="sort-button"
-          >
-            <ArrowUpDown style={{ width: '1rem', height: '1rem' }} />
-            <span>
-              Sort by Total
-              {sort.startsWith('total:') && (
-                <span style={{ marginLeft: '4px', fontSize: '0.8em', opacity: 0.7 }}>
-                  ({sort.includes('desc') ? '↓' : '↑'})
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+          {/* Selection Info and Actions */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            {selection.selectedCount > 0 && (
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  padding: '8px 16px',
+                  backgroundColor: '#f3f4f6',
+                  borderRadius: '8px',
+                  border: '1px solid #e5e7eb',
+                }}
+              >
+                <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#374151' }}>
+                  {selection.selectedCount} order{selection.selectedCount > 1 ? 's' : ''} selected
                 </span>
-              )}
-            </span>
-          </Button>
-          
-          <Button
-            onClick={() => toggle('createdAt')}
-            variant="secondary"
-            className="sort-button"
-          >
-            <ArrowUpDown style={{ width: '1rem', height: '1rem' }} />
-            <span>
-              Sort by Created Date
-              {sort.startsWith('createdAt:') && (
-                <span style={{ marginLeft: '4px', fontSize: '0.8em', opacity: 0.7 }}>
-                  ({sort.includes('desc') ? '↓' : '↑'})
-                </span>
-              )}
-            </span>
-          </Button>
-        </motion.div>
+                
+                <Button
+                  onClick={handleCancelSelected}
+                  variant="secondary"
+                  disabled={cancelOrder.isPending}
+                  style={{
+                    backgroundColor: '#fee2e2',
+                    borderColor: '#fca5a5',
+                    color: '#dc2626',
+                    fontSize: '0.875rem',
+                    padding: '6px 12px',
+                  }}
+                >
+                  <X style={{ width: '0.875rem', height: '0.875rem' }} />
+                  {cancelOrder.isPending ? 'Cancelling...' : 'Cancel Selected'}
+                </Button>
+
+                <button
+                  onClick={selection.clearSelection}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#6b7280',
+                    cursor: 'pointer',
+                    fontSize: '0.875rem',
+                    textDecoration: 'underline',
+                  }}
+                >
+                  Clear Selection
+                </button>
+              </motion.div>
+            )}
+          </div>
+
+          {/* Sort Controls */}
+          <motion.div style={{ display: 'flex', gap: '8px' }}>
+            <Button
+              onClick={() => toggle('total')}
+              variant="secondary"
+              className="sort-button"
+            >
+              <ArrowUpDown style={{ width: '1rem', height: '1rem' }} />
+              <span>
+                Sort by Total
+                {sort.startsWith('total:') && (
+                  <span style={{ marginLeft: '4px', fontSize: '0.8em', opacity: 0.7 }}>
+                    ({sort.includes('desc') ? '↓' : '↑'})
+                  </span>
+                )}
+              </span>
+            </Button>
+            
+            <Button
+              onClick={() => toggle('createdAt')}
+              variant="secondary"
+              className="sort-button"
+            >
+              <ArrowUpDown style={{ width: '1rem', height: '1rem' }} />
+              <span>
+                Sort by Created Date
+                {sort.startsWith('createdAt:') && (
+                  <span style={{ marginLeft: '4px', fontSize: '0.8em', opacity: 0.7 }}>
+                    ({sort.includes('desc') ? '↓' : '↑'})
+                  </span>
+                )}
+              </span>
+            </Button>
+          </motion.div>
+        </div>
       </div>
 
       {/* Orders Grid */}
       <div className="orders-grid">
         <AnimatePresence mode="popLayout">
-          {sorted.map((order, index) => <OrderCard key={order.id} order={order} index={index} />)}
+          {sorted.map((order, index) => (
+            <OrderCard 
+              key={order.id} 
+              order={order} 
+              index={index}
+              isSelected={selection.isSelected(order.id)}
+              onSelectionToggle={selection.toggleSelection}
+            />
+          ))}
         </AnimatePresence>
       </div>
 

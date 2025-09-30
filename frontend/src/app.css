@@ -382,6 +382,28 @@
     cursor: not-allowed;
   }
 
+  .action-button-cancel {
+    padding: 0.5rem 0.75rem;
+    background-color: #fee2e2;
+    color: #991b1b;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .action-button-cancel:hover {
+    background-color: #fecaca;
+    transform: scale(1.05);
+  }
+
+  .action-button-cancel:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
   .empty-state {
     text-align: center;
     padding: 5rem 0;
