@@ -1,23 +1,24 @@
-import "dotenv/config";
-import express from "express";
-import cors from "cors";
-import { HttpError } from "./errors.js";
+import 'dotenv/config';
+import express from 'express';
+import cors from 'cors';
+import { HttpError } from './errors.js';
+import { ZodError } from 'zod';
 import {
   listQuerySchema,
   idParamSchema,
   patchBodySchema,
-} from "./validation.js";
+} from './validation.js';
 import {
   getOrdersCount,
   listOrders,
   getOrder,
   patchOrder,
-} from "./orders.repo.js";
+} from './orders.repo.js';
 
 const app = express();
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
     credentials: true,
   })
 );
@@ -26,43 +27,48 @@ app.use(express.json());
 // Custom request logging middleware
 app.use((req, res, next) => {
   const start = Date.now();
-  const timestamp = new Date().toISOString();
-  
+
   // Log incoming request
-  console.log(`[${timestamp}] ${req.method} ${req.url} - ${req.ip || 'unknown IP'}`);
-  
+  console.log(`[DEBUG] ${req.method} ${req.url} (start)`);
+
   // Log request body for non-GET requests (excluding sensitive data)
   if (req.method !== 'GET' && Object.keys(req.body || {}).length > 0) {
-    console.log(`[${timestamp}] Request body:`, JSON.stringify(req.body, null, 2));
+    console.log(`[DEBUG] Request body:`, JSON.stringify(req.body, null, 2));
   }
-  
+
   // Log query parameters if present
   if (Object.keys(req.query).length > 0) {
-    console.log(`[${timestamp}] Query params:`, JSON.stringify(req.query, null, 2));
+    console.log(`[DEBUG] Query params:`, JSON.stringify(req.query));
   }
-  
+
   // Override res.json to log response
   const originalJson = res.json;
-  res.json = function(data) {
+  res.json = function (data) {
     const duration = Date.now() - start;
-    console.log(`[${timestamp}] ${req.method} ${req.url} - ${res.statusCode} - ${duration}ms`);
-    
+    console.log(
+      `[DEBUG] ${req.method} ${req.url} - ${res.statusCode} (end) - ${duration}ms`
+    );
+
     // Log response data for errors or if it's small
     if (res.statusCode >= 400 || JSON.stringify(data).length < 500) {
-      console.log(`[${timestamp}] Response:`, JSON.stringify(data, null, 2));
+      console.log(`[DEBUG] Response:`, JSON.stringify(data, null, 2));
     } else {
-      console.log(`[${timestamp}] Response: [Large response - ${JSON.stringify(data).length} chars]`);
+      console.log(
+        `[DEBUG] Response: [Large response - ${
+          JSON.stringify(data).length
+        } chars]`
+      );
     }
-    
+
     return originalJson.call(this, data);
   };
-  
+
   next();
 });
 
-app.get("/health", (_req, res) => res.json({ ok: true }));
+app.get('/health', (_req, res) => res.json({ ok: true }));
 
-app.get("/orders", (req, res, next) => {
+app.get('/orders', (req, res, next) => {
   try {
     const { page, limit, q, status } = listQuerySchema.parse(req.query);
     const items = listOrders({ page, limit, q, status });
@@ -73,28 +79,28 @@ app.get("/orders", (req, res, next) => {
   }
 });
 
-app.get("/orders/:id", (req, res, next) => {
+app.get('/orders/:id', (req, res, next) => {
   try {
     const { id } = idParamSchema.parse(req.params);
     const row = getOrder(id);
-    if (!row) throw new HttpError(404, "Not found");
+    if (!row) throw new HttpError(404, 'Not found');
     res.json(mapRow(row));
   } catch (e) {
     next(e);
   }
 });
 
-app.patch("/orders/:id", (req, res, next) => {
+app.patch('/orders/:id', (req, res, next) => {
   try {
     const { id } = idParamSchema.parse(req.params);
     const { isApproved } = patchBodySchema.parse(req.body);
     const ok = patchOrder(id, isApproved);
-    if (!ok) throw new HttpError(404, "Not found");
+    if (!ok) throw new HttpError(404, 'Not found');
     res.json({ ok: true });
   } catch (e: any) {
-    // BUG: wrong status code on validation errors
-    if (e && typeof e === "object" && "issues" in e) {
-      res.status(500).json({ message: "validation failed", error: e }); // <-- BE-3
+    if (e instanceof ZodError) {
+      // Caught a Zod validation error - respond with 400 BE-3
+      res.status(400).json({ message: 'validation failed', error: e });
       return;
     }
     next(e);
@@ -108,7 +114,7 @@ app.use((err: any, _req: any, res: any, _next: any) => {
     return;
   }
   console.error(err);
-  res.status(500).json({ message: "internal error" });
+  res.status(500).json({ message: 'internal error' });
 });
 
 function mapRow(row: any) {
