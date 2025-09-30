@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { User, Hash, Package, DollarSign, FileText, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import StatusBadge from './common/StatusBadge';
+import Button from './common/buttons/Button';
 
 interface OrderDetailProps {
   orderId: string;
@@ -148,18 +149,10 @@ export default function OrderDetail({ orderId }: OrderDetailProps) {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
-                className="flex space-x-4 pt-6 border-t border-gray-200"
+                className="flex space-x-4 pt-6"
               >
-                <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex-1 button-modern">
-                  Edit Order
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="px-6 py-3 border-2 border-gray-300 text-gray-700 font-medium rounded-xl hover:border-gray-400 hover:bg-gray-50 transition-all duration-200"
-                >
-                  Download PDF
-                </motion.button>
+                <Button variant="primary"> Edit Order </Button>
+                <Button variant="secondary"> Download PDF </Button>
               </motion.div>
             </div>
           </motion.div>

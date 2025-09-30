@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Hash, ArrowUpDown } from 'lucide-react';
 import OrderCard from './OrderCard';
+import Button from './common/buttons/Button';
 
 export default function OrdersTable({ items }: { items: Order[] }) {
   const [params, set] = useSearchParams();
@@ -28,10 +29,9 @@ export default function OrdersTable({ items }: { items: Order[] }) {
       {/* Sort Controls */}
       <div className="orders-header">
         <motion.div style={{ display: 'flex', gap: '8px' }}>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <Button
             onClick={() => toggle('total')}
+            variant="secondary"
             className="sort-button"
           >
             <ArrowUpDown style={{ width: '1rem', height: '1rem' }} />
@@ -43,12 +43,11 @@ export default function OrdersTable({ items }: { items: Order[] }) {
                 </span>
               )}
             </span>
-          </motion.button>
+          </Button>
           
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <Button
             onClick={() => toggle('createdAt')}
+            variant="secondary"
             className="sort-button"
           >
             <ArrowUpDown style={{ width: '1rem', height: '1rem' }} />
@@ -60,7 +59,7 @@ export default function OrdersTable({ items }: { items: Order[] }) {
                 </span>
               )}
             </span>
-          </motion.button>
+          </Button>
         </motion.div>
       </div>
 

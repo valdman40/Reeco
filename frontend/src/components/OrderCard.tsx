@@ -13,6 +13,7 @@ import { Order } from '../types/order';
 import { useApproveOrder } from '../hooks/useApproveOrder';
 import StatusBadge from './common/StatusBadge';
 import { getStatusConfig } from '../utils/statusConfig';
+import Button from './common/buttons/Button';
 
 interface OrderCardProps {
   order: Order;
@@ -118,17 +119,15 @@ const OrderCard = React.forwardRef<HTMLDivElement, OrderCardProps>(({ order, ind
           className="order-actions"
         >
           <div className="action-buttons">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={(e) => {
-                e.stopPropagation();
-                navigate(`/orders?id=${order.id}`);
-              }}
-              className="action-button-primary"
+            <Button
+                onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/orders?id=${order.id}`);
+                }}
+                variant='primary'
             >
-              View Details
-            </motion.button>
+                View Details
+            </Button>
 
             {order.status === 'pending' && (
               <motion.button
