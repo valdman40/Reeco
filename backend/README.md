@@ -116,7 +116,7 @@ export interface OrdersResponse {
 
 ## Project Structure
 ```
-backend-node/
+backend/
 ├── src/
 │   ├── db.ts              # SQLite database connection
 │   ├── server.ts          # Express app and routes
@@ -144,11 +144,10 @@ backend-node/
 
 ## Scripts
 - `npm run dev`: Start development server with auto-reload
-- `npm run build`: Compile TypeScript to JavaScript
-- `npm run start`: Run compiled JavaScript
 - `npm run seed`: Initialize database with test data
 - `npm test`: Run test suite
-- `npm run test:watch`: Run tests in watch mode
+
+**Note**: The backend uses `tsx` for direct TypeScript execution in development. For production deployment, you may want to add build and start scripts.
 
 ## Intentional Bugs (For Assignment)
 This backend contains three intentional bugs that need to be identified and fixed:
@@ -213,8 +212,21 @@ Tests cover:
 - Database uses SQLite WAL mode for better concurrency
 - All monetary values stored as cents, converted to decimals in API responses
 - Validation errors should return 400 status codes with descriptive messages
-- Database is automatically created and seeded when running `npm run seed`
+- Database is automatically created from `data/schema.sql` on first connection
+- Database seeding creates sample data via `npm run seed`
 - CORS is enabled for frontend development
+- The database file (`data/app.db`) is created automatically and should not be committed to version control
+
+## Prerequisites
+- Node.js 18+ 
+- npm or yarn package manager
 
 ## Environment Setup
 The server runs on port 3001 by default. Make sure your frontend's `VITE_API_URL` points to `http://localhost:3001`.
+
+**Development Setup:**
+1. Install dependencies: `npm install`
+2. Initialize database: `npm run seed`
+3. Start development server: `npm run dev`
+
+The database will be automatically created in the `data/` directory when you first run the seed command.

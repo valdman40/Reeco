@@ -5,10 +5,10 @@ This repository contains a complete full-stack application for managing orders, 
 ## Repository Structure
 
 ### Backends (Choose One)
-- **`backend-node/`** — Node.js + Express + TypeScript + SQLite + Zod
+- **`backend/`** — Node.js + Express + TypeScript + SQLite + Zod
 
 ### Frontend
-- **`frontend-starter/`** — React + TypeScript + React Query + React Router + Vitest
+- **`frontend/`** — React + TypeScript + React Query + React Router + Vitest
 
 ### Documentation
 - **`fullstack-assignment-readme.md`** — Complete assignment instructions
@@ -20,7 +20,7 @@ This repository contains a complete full-stack application for managing orders, 
 
 **Option A: Node.js Backend**
 ```bash
-cd backend-node
+cd backend
 npm install
 npm run seed
 npm run dev  # http://localhost:3001
@@ -28,13 +28,13 @@ npm run dev  # http://localhost:3001
 
 ### 2. Start the Frontend
 ```bash
-cd frontend-starter
+cd frontend
 npm install
 npm run dev  # http://localhost:5173
 ```
 
 ### 3. Configure Environment
-Create `.env` in frontend-starter/:
+Copy and configure `.env` in frontend/ (use `.env.example` as template):
 ```
 VITE_API_URL=http://localhost:3001
 ```
@@ -64,10 +64,10 @@ Each component includes comprehensive test suites:
 Run tests:
 ```bash
 # Backend (Node.js)
-cd backend-node && npm test
+cd backend && npm test
 
 # Frontend  
-cd frontend-starter && npm test
+cd frontend && npm test
 ```
 
 ## Assignment Goals

@@ -28,38 +28,63 @@ Make sure you have a backend running on `http://localhost:3001` (Node.js).
 ## Project Structure
 
 ```
-frontend-starter/
+frontend/
 ├── src/
 │   ├── components/           # Reusable UI components
+│   │   ├── OrderCard.tsx     # Individual order card
 │   │   ├── OrderDetail.tsx   # Order details modal
 │   │   ├── OrdersTable.tsx   # Main orders list table
 │   │   ├── Pagination.tsx    # Pagination controls
-│   │   ├── SearchInput.tsx   # Search input component
-│   │   └── StatusFilter.tsx  # Status filter dropdown
+│   │   ├── ResultsSummary.tsx # Search results summary
+│   │   ├── SearchInput.tsx   # Search input field
+│   │   ├── StatusFilter.tsx  # Status filter dropdown
+│   │   ├── common/          # Shared UI elements
+│   │   │   ├── ErrorDisplay.tsx    # Error messages
+│   │   │   ├── LoadingMessage.tsx  # Loading states
+│   │   │   ├── StatusBadge.tsx     # Status badges
+│   │   │   └── buttons/            # Button elements
+│   │   │       ├── Button.tsx      # Generic button
+│   │   │       └── NextPrevButton.tsx # Navigation buttons
+│   │   └── icons/           # Icon elements
+│   │       └── ErrorIcon.tsx # Error icon
 │   ├── hooks/               # Custom React hooks
 │   │   ├── useApproveOrder.ts # Order approval mutation
+│   │   ├── useDebounce.ts    # Debounce hook for search
 │   │   ├── useOrder.ts       # Single order fetching
-│   │   └── useOrders.ts      # Orders list fetching
+│   │   ├── useOrders.ts      # Orders list fetching
+│   │   └── useOrdersSearch.ts # Orders search functionality
 │   ├── lib/                 # Shared utilities and configuration
 │   │   ├── api.ts           # API client utilities
 │   │   ├── queryClient.ts   # React Query client setup
 │   │   └── queryKeys.ts     # Query key factories
+│   ├── mocks/               # MSW mock setup
+│   │   └── browser.ts       # Browser MSW setup
 │   ├── pages/               # Page components
 │   │   └── OrdersPage.tsx   # Main orders page
 │   ├── types/               # TypeScript type definitions
 │   │   └── order.ts         # Order-related types
 │   ├── utils/               # Helper functions
-│   │   └── clientSort.ts    # Client-side sorting logic
+│   │   ├── clientSort.ts    # Client-side sorting logic
+│   │   └── statusConfig.ts  # Status configuration
 │   ├── App.tsx              # Root app component
 │   ├── main.tsx            # Application entry point
-│   └── app.css             # Global styles
+│   ├── app.css             # Global styles
+│   └── vite-env.d.ts       # Vite type definitions
 ├── tests/                  # Test files
 │   ├── handlers.ts         # MSW API mock handlers
 │   ├── orders-page.spec.tsx # Page integration tests
 │   └── setup.ts            # Test environment setup
+├── public/                 # Static assets
+│   └── mockServiceWorker.js # MSW service worker
+├── .env.example            # Environment variables template
+├── .prettierrc             # Prettier configuration
 ├── index.html              # HTML entry point
-├── vite.config.ts         # Vite configuration
-└── tsconfig.json          # TypeScript configuration
+├── package.json           # Dependencies and scripts
+├── postcss.config.js      # PostCSS configuration
+├── tailwind.config.js     # Tailwind CSS configuration
+├── tsconfig.json          # TypeScript configuration
+├── tsconfig.node.json     # Node-specific TypeScript config
+└── vite.config.ts         # Vite configuration
 ```
 
 ## Data Types
@@ -95,6 +120,10 @@ export type OrdersResponse = {
 - **Vitest**: Unit and integration testing
 - **MSW (Mock Service Worker)**: API mocking for tests
 - **Testing Library**: Component testing utilities
+- **Tailwind CSS**: Utility-first CSS framework for styling
+- **Ant Design**: UI component library
+- **Lucide React**: Icon library
+- **Framer Motion**: Animation library
 
 ## Scripts
 
@@ -131,6 +160,8 @@ All application state is synchronized with the URL:
 - `useOrders`: Handles orders list fetching with parameters
 - `useOrder`: Fetches individual order details
 - `useApproveOrder`: Manages order approval mutations
+- `useDebounce`: Debounces input values for search functionality
+- `useOrdersSearch`: Combines search functionality with orders fetching
 
 ### Separation of Concerns
 
@@ -173,19 +204,30 @@ This frontend contains two intentional bugs that need to be identified and fixed
 
 ## Environment Setup
 
-Create a `.env` file in the root directory:
+Copy `.env.example` to `.env` and configure:
 
+```bash
+cp .env.example .env
+```
+
+The `.env` file should contain:
 ```
 VITE_API_URL=http://localhost:3001
 ```
 
 ## Development Workflow
 
-1. Start your chosen backend (Node.js or .NET)
+1. Start your chosen backend (Node.js) on port 3001
 2. Install frontend dependencies: `npm install`
-3. Start development server: `npm run dev`
-4. Open `http://localhost:5173` in your browser
-5. Run tests: `npm test`
+3. Copy and configure environment: `cp .env.example .env`
+4. Start development server: `npm run dev`
+5. Open `http://localhost:5173` in your browser
+6. Run tests: `npm test`
+
+**Prerequisites:**
+- Node.js 18+ 
+- npm or yarn package manager
+- Backend server running on http://localhost:3001
 
 ## API Integration
 
