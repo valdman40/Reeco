@@ -31,7 +31,7 @@ export function listOrders(filter: {
   limit: number;
 }) {
   const { page, limit } = filter;
-  const offset = (page - 1) * limit; // <-- BE-1
+  const offset = (page - 1) * limit;
 
   let sql = 'SELECT * FROM orders WHERE 1=1';
   const params: any[] = [];
@@ -48,27 +48,22 @@ export function listOrders(filter: {
 
   const rows = db.prepare(sql).all(...params) as OrderRow[];
 
-  // N+1 smell: count items per order one-by-one (inefficient)
-  const itemStmt = db.prepare(
-    'SELECT COUNT(*) as c FROM order_items WHERE order_id = ?'
-  );
-  const withCounts = rows.map((r) => ({
+  return rows.map((r) => ({
     id: r.id,
     customer: r.customer,
     status: r.status,
     total_cents: r.total_cents,
     created_at: r.created_at,
     is_approved: r.is_approved,
-    lineItemCount: (itemStmt.get(r.id) as any).c as number, // <-- BE-2
   }));
-
-  return withCounts;
 }
 
 export function getOrder(id: string) {
-  const row = db.prepare('SELECT * FROM orders WHERE id = ?').get(id) as
-    | OrderRow
-    | undefined;
+  const row = db
+    .prepare(
+      `SELECT o.*, COUNT(oi.id) as lineItemCount FROM orders o LEFT JOIN order_items oi ON o.id = oi.order_id WHERE o.id = ? GROUP BY o.id `
+    )
+    .get(id) as (OrderRow & { lineItemCount: number }) | undefined;
   return row ?? null;
 }
 
