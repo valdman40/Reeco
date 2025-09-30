@@ -1,23 +1,23 @@
-import db from "./db.js";
+import db from './db.js';
 
 export type OrderRow = {
   id: string;
   customer: string;
-  status: "pending" | "approved" | "rejected";
+  status: 'pending' | 'approved' | 'rejected';
   total_cents: number;
   created_at: string;
   is_approved: 0 | 1;
 };
 
 export function getOrdersCount(filter: { q?: string; status?: string }) {
-  let sql = "SELECT COUNT(*) as cnt FROM orders WHERE 1=1";
+  let sql = 'SELECT COUNT(*) as cnt FROM orders WHERE 1=1';
   const params: any[] = [];
   if (filter.q) {
-    sql += " AND (customer LIKE ? OR id LIKE ?)";
+    sql += ' AND (customer LIKE ? OR id LIKE ?)';
     params.push(`%${filter.q}%`, `%${filter.q}%`);
   }
   if (filter.status) {
-    sql += " AND status = ?";
+    sql += ' AND status = ?';
     params.push(filter.status);
   }
   const row = db.prepare(sql).get(...params) as { cnt: number };
@@ -31,27 +31,26 @@ export function listOrders(filter: {
   limit: number;
 }) {
   const { page, limit } = filter;
-  // BUG: off-by-one – OFFSET should be (page-1)*limit but here we use page*limit
-  const offset = page * limit; // <-- BE-1
+  const offset = (page - 1) * limit; // <-- BE-1
 
-  let sql = "SELECT * FROM orders WHERE 1=1";
+  let sql = 'SELECT * FROM orders WHERE 1=1';
   const params: any[] = [];
   if (filter.q) {
-    sql += " AND (customer LIKE ? OR id LIKE ?)";
+    sql += ' AND (customer LIKE ? OR id LIKE ?)';
     params.push(`%${filter.q}%`, `%${filter.q}%`);
   }
   if (filter.status) {
-    sql += " AND status = ?";
+    sql += ' AND status = ?';
     params.push(filter.status);
   }
-  sql += " ORDER BY datetime(created_at) DESC LIMIT ? OFFSET ?";
+  sql += ' ORDER BY datetime(created_at) DESC LIMIT ? OFFSET ?';
   params.push(limit, offset);
 
   const rows = db.prepare(sql).all(...params) as OrderRow[];
 
   // N+1 smell: count items per order one-by-one (inefficient)
   const itemStmt = db.prepare(
-    "SELECT COUNT(*) as c FROM order_items WHERE order_id = ?"
+    'SELECT COUNT(*) as c FROM order_items WHERE order_id = ?'
   );
   const withCounts = rows.map((r) => ({
     id: r.id,
@@ -67,7 +66,7 @@ export function listOrders(filter: {
 }
 
 export function getOrder(id: string) {
-  const row = db.prepare("SELECT * FROM orders WHERE id = ?").get(id) as
+  const row = db.prepare('SELECT * FROM orders WHERE id = ?').get(id) as
     | OrderRow
     | undefined;
   return row ?? null;
@@ -75,7 +74,7 @@ export function getOrder(id: string) {
 
 export function patchOrder(id: string, isApproved: boolean) {
   const res = db
-    .prepare("UPDATE orders SET is_approved = ? , status = ? WHERE id = ?")
-    .run(isApproved ? 1 : 0, isApproved ? "approved" : "pending", id);
+    .prepare('UPDATE orders SET is_approved = ? , status = ? WHERE id = ?')
+    .run(isApproved ? 1 : 0, isApproved ? 'approved' : 'pending', id);
   return res.changes > 0;
 }
