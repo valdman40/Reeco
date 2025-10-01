@@ -71,8 +71,10 @@ app.get('/health', (_req, res) => res.json({ ok: true }));
 
 app.get('/orders', (req, res, next) => {
   try {
-    const { page, limit, q, status } = listQuerySchema.parse(req.query);
-    const items = listOrders({ page, limit, q, status });
+    const { page, limit, q, status, sortBy, sortOrder } = listQuerySchema.parse(
+      req.query
+    );
+    const items = listOrders({ page, limit, q, status, sortBy, sortOrder });
     const total = getOrdersCount({ q, status });
     res.json({ items: items.map(mapRow), page, limit, total });
   } catch (e) {
