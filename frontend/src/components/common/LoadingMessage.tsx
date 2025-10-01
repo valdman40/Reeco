@@ -10,9 +10,10 @@ export default function LoadingMessage({ message }: LoadingMessageProps) {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="flex flex-col items-center justify-center py-20"
+      className="flex items-center justify-center"
+      style={{ gap: '1rem' }}
     >
-      <Spin size="large" />
+      <Spin size="small" />
       <motion.p
         animate={{ opacity: [0.5, 1, 0.5] }}
         transition={{ duration: 2, repeat: Infinity }}

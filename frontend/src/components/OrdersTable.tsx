@@ -3,16 +3,41 @@ import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Hash, ArrowUpDown, X } from 'lucide-react';
 import { Spin } from 'antd';
+import { useState, useEffect } from 'react';
 import OrderCard from './OrderCard';
 import Button from './common/buttons/Button';
 import { useOrderSelection } from '../hooks/useOrderSelection';
 import { useCancelOrder } from '../hooks/useCancelOrder';
+import LoadingMessage from './common/LoadingMessage';
 
 export default function OrdersTable({ items, isLoading }: { items: Order[]; isLoading?: boolean }) {
   const [params, set] = useSearchParams();
   const sort = params.get('sort') ?? 'createdAt:desc';
   // Remove client-side sorting - server now handles this
   const sorted = items;
+  
+  // Delayed loading state to prevent flickering on fast requests
+  const [showLoading, setShowLoading] = useState(false);
+  
+  useEffect(() => {
+    let timeoutId: number;
+    
+    if (isLoading) {
+      // Wait 100ms before showing loading indicator
+      timeoutId = window.setTimeout(() => {
+        setShowLoading(true);
+      }, 100);
+    } else {
+      // Immediately hide loading when done
+      setShowLoading(false);
+    }
+    
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [isLoading]);
   
   // Selection management
   const selection = useOrderSelection();
@@ -46,27 +71,7 @@ export default function OrdersTable({ items, isLoading }: { items: Order[]; isLo
             {/* Loading Indicator and Selection Info */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
               {/* Loading Indicator */}
-              {isLoading && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '8px 12px',
-                    backgroundColor: '#f0f9ff',
-                    borderRadius: '6px',
-                    border: '1px solid #bae6fd',
-                  }}
-                >
-                  <Spin size="small" />
-                  <span style={{ fontSize: '0.875rem', color: '#0369a1', fontWeight: '500' }}>
-                    Loading...
-                  </span>
-                </motion.div>
-              )}
+              {showLoading && <LoadingMessage message="Loading..." /> }
 
               {selection.selectedCount > 0 && (
                 <motion.div

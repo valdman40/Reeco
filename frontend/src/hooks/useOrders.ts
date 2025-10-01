@@ -8,6 +8,7 @@ export function useOrders(params: { page: number; limit: number; q?: string; sta
     queryKey: queryKeys.orders(params),
     retry: 1,
     retryDelay: 100,
+    gcTime: 10 * 60 * 1000, // Keep errors and data in cache for 10 minutes
     queryFn: () => {
       // Clean params to avoid "undefined" strings in URL
       const cleanParams = new URLSearchParams();

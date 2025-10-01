@@ -86,8 +86,11 @@ export default function OrdersPage() {
         >
           <div>
             
-            {isLoading && <LoadingMessage message="Loading your orders..." />}
-            {isError && (
+            {/* Loading message - only show for initial load without cached data */}
+            {isLoading && !data && <LoadingMessage message="Loading your orders..." />}
+            
+            {/* Error message - show when there's an error and no cached data to display */}
+            {isError && !data && (
               <>
                 <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
                   <Button
@@ -109,7 +112,8 @@ export default function OrdersPage() {
               </>
             )}
 
-            {!isError && (
+            {/* Table - show when we have data OR when there's an error with cached data */}
+            {(data || (isError && data)) && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
