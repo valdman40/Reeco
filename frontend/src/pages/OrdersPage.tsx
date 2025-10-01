@@ -32,7 +32,7 @@ export default function OrdersPage() {
     sort,  // ← Now included in server request!
   }), [page, limit, q, status, sort]);
   
-  const { data, isLoading, isError, error } = useOrders(queryParams);
+  const { data, isLoading, isError, error, refetch } = useOrders(queryParams);
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -91,11 +91,11 @@ export default function OrdersPage() {
               <>
                 <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
                   <Button
-                    onClick={() => window.location.reload()}
+                    onClick={() => refetch()}
                     variant="secondary"
                     style={{ width: '200px' }}
                   >
-                    🔄 Refresh Page
+                    🔄 Retry
                   </Button>
                 </div>
                 <ErrorDisplay
