@@ -30,8 +30,10 @@ export function listOrders(filter: {
   status?: string;
   page: number;
   limit: number;
+  sortBy?: string;
+  sortOrder?: string;
 }) {
-  const { page, limit } = filter;
+  const { page, limit, sortBy = 'created_at', sortOrder = 'desc' } = filter;
   const offset = (page - 1) * limit;
 
   let sql = 'SELECT * FROM orders WHERE 1=1';
@@ -44,7 +46,18 @@ export function listOrders(filter: {
     sql += ' AND status = ?';
     params.push(filter.status);
   }
-  sql += ' ORDER BY datetime(created_at) DESC LIMIT ? OFFSET ?';
+  // Add sorting
+  const validSortColumns = ['created_at', 'total_cents', 'customer', 'status'];
+  const sortColumn = validSortColumns.includes(sortBy) ? sortBy : 'created_at';
+  const order = sortOrder?.toLowerCase() === 'asc' ? 'ASC' : 'DESC';
+
+  if (sortColumn === 'created_at') {
+    sql += ` ORDER BY datetime(${sortColumn}) ${order}`;
+  } else {
+    sql += ` ORDER BY ${sortColumn} ${order}`;
+  }
+
+  sql += ' LIMIT ? OFFSET ?';
   params.push(limit, offset);
 
   const rows = db.prepare(sql).all(...params) as OrderRow[];
