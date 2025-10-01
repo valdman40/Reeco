@@ -1,19 +1,14 @@
 import { Order } from '../types/order';
-import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Hash, ArrowUpDown, X } from 'lucide-react';
 import { Spin } from 'antd';
 import { useState, useEffect } from 'react';
 import OrderCard from './OrderCard';
 import Button from './common/buttons/Button';
-import { useOrderSelection } from '../hooks/useOrderSelection';
-import { useCancelOrder } from '../hooks/useCancelOrder';
-import LoadingMessage from './common/LoadingMessage';
+import { useOrdersTable } from '../hooks/useOrdersTable';
 
 export default function OrdersTable({ items, isLoading }: { items: Order[]; isLoading?: boolean }) {
-  const [params, set] = useSearchParams();
-  const sort = params.get('sort') ?? 'createdAt:desc';
-  // Remove client-side sorting - server now handles this
+  // Server handles sorting - this is just for display
   const sorted = items;
   
   // Delayed loading state to prevent flickering on fast requests
@@ -39,29 +34,8 @@ export default function OrdersTable({ items, isLoading }: { items: Order[]; isLo
     };
   }, [isLoading]);
   
-  // Selection management
-  const selection = useOrderSelection();
-  const cancelOrder = useCancelOrder();
-
-  function toggle(f: string) {
-    const [currentField, currentDir] = sort.split(':');
-    
-    // If clicking the same field, toggle direction
-    // If clicking a different field, start with desc (most common for totals/dates)
-    const dir = currentField === f 
-      ? (currentDir === 'desc' ? 'asc' : 'desc')
-      : 'desc';
-      
-    params.set('sort', `${f}:${dir}`);
-    set(params);
-  }
-
-  const handleCancelSelected = () => {
-    selection.selectedOrderIds.forEach(id => {
-      cancelOrder.mutate({ id });
-    });
-    selection.clearSelection();
-  };
+  // All data logic is now in the custom hook
+  const { sort, selection, handleSort, handleCancelSelected, isCancelling } = useOrdersTable();
 
   return (
     <div className="orders-container">
@@ -71,7 +45,27 @@ export default function OrdersTable({ items, isLoading }: { items: Order[]; isLo
             {/* Loading Indicator and Selection Info */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
               {/* Loading Indicator */}
-              {showLoading && <LoadingMessage message="Loading..." /> }
+              {showLoading && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '8px 12px',
+                    backgroundColor: '#f0f9ff',
+                    borderRadius: '6px',
+                    border: '1px solid #bae6fd',
+                  }}
+                >
+                  <Spin size="small" />
+                  <span style={{ fontSize: '0.875rem', color: '#0369a1', fontWeight: '500' }}>
+                    Loading...
+                  </span>
+                </motion.div>
+              )}
 
               {selection.selectedCount > 0 && (
                 <motion.div
@@ -96,7 +90,7 @@ export default function OrdersTable({ items, isLoading }: { items: Order[]; isLo
                   <Button
                     onClick={handleCancelSelected}
                     variant="secondary"
-                    disabled={cancelOrder.isPending}
+                    disabled={isCancelling}
                     style={{
                       backgroundColor: '#fee2e2',
                       borderColor: '#fca5a5',
@@ -106,7 +100,7 @@ export default function OrdersTable({ items, isLoading }: { items: Order[]; isLo
                     }}
                   >
                     <X style={{ width: '0.875rem', height: '0.875rem' }} />
-                    {cancelOrder.isPending ? 'Cancelling...' : 'Cancel Selected'}
+                    {isCancelling ? 'Cancelling...' : 'Cancel Selected'}
                   </Button>
 
                   <button
@@ -129,7 +123,7 @@ export default function OrdersTable({ items, isLoading }: { items: Order[]; isLo
             {/* Sort Controls */}
             <motion.div style={{ display: 'flex', gap: '8px' }}>
               <Button
-                onClick={() => toggle('total')}
+                onClick={() => handleSort('total')}
                 variant="secondary"
                 className="sort-button"
               >
@@ -145,7 +139,7 @@ export default function OrdersTable({ items, isLoading }: { items: Order[]; isLo
               </Button>
               
               <Button
-                onClick={() => toggle('createdAt')}
+                onClick={() => handleSort('createdAt')}
                 variant="secondary"
                 className="sort-button"
               >

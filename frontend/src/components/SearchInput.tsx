@@ -1,46 +1,18 @@
-import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useState } from 'react';
 import { Search, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useDebounce } from '../hooks/useDebounce';
+import { useSearchInput } from '../hooks/useSearchInput';
 
 export default function SearchInput() {
-  const [params, set] = useSearchParams();
-  const [val, setVal] = useState(params.get('q') ?? '');
+  // UI state only
   const [focused, setFocused] = useState(false);
   
-  // Use custom debounce hook
-  const debouncedVal = useDebounce(val, 300);
+  // All data logic in custom hook
+  const { searchValue, handleSearchChange, clearSearch } = useSearchInput();
 
-  // Update URL when debounced value changes
-  useEffect(() => {
-    const newParams = new URLSearchParams(window.location.search);
-    const currentQuery = newParams.get('q') ?? '';
-    
-    // If debounced value matches current URL, no need to update
-    if (debouncedVal === currentQuery) return;
-    
-    if (debouncedVal.trim()) {
-      newParams.set('q', debouncedVal.trim());
-    } else {
-      newParams.delete('q');
-    }
-    newParams.set('page', '1');
-    
-    set(newParams);
-  }, [debouncedVal]);
-
-  function onChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setVal(e.target.value); // Only update local state immediately
-  }
-
-  function clearSearch() {
-    setVal('');
-    const newParams = new URLSearchParams(window.location.search);
-    newParams.delete('q');
-    newParams.set('page', '1');
-    set(newParams);
-  }
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleSearchChange(e.target.value);
+  };
 
   return (
     <div className="relative">
@@ -57,8 +29,8 @@ export default function SearchInput() {
         {/* Input Field */}
         <input
           type="text"
-          value={val}
-          onChange={onChange}
+          value={searchValue}
+          onChange={handleInputChange}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           placeholder="Search orders, customers, or order IDs..."
@@ -75,7 +47,7 @@ export default function SearchInput() {
 
         {/* Clear Button */}
         <AnimatePresence>
-          {val && (
+          {searchValue && (
             <motion.button
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}

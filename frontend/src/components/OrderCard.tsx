@@ -1,6 +1,5 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate, useSearchParams } from 'react-router-dom';
 import { format } from 'date-fns';
 import {
   User,
@@ -11,10 +10,9 @@ import {
   Check,
 } from 'lucide-react';
 import { Order } from '../types/order';
-import { useApproveOrder } from '../hooks/useApproveOrder';
 import StatusBadge from './common/StatusBadge';
-import { getStatusConfig } from '../utils/statusConfig';
 import Button from './common/buttons/Button';
+import { useOrderCard } from '../hooks/useOrderCard';
 
 interface OrderCardProps {
   order: Order;
@@ -24,24 +22,21 @@ interface OrderCardProps {
 }
 
 const OrderCard = React.forwardRef<HTMLDivElement, OrderCardProps>(({ order, index, isSelected = false, onSelectionToggle }, ref) => {
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const approve = useApproveOrder();
-
-  const handleOrderNavigation = () => {
-    const newParams = new URLSearchParams(searchParams);
-    newParams.set('id', order.id);
-    navigate(`/orders?${newParams.toString()}`);
-  };
+  // All business logic moved to custom hook
+  const {
+    handleOrderNavigation,
+    handleApprove,
+    isApproving,
+    statusConfig,
+    isCancelled,
+    cardOpacity,
+    isPending,
+  } = useOrderCard(order);
 
   const handleSelectionToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
     onSelectionToggle?.(order.id);
   };
-
-  const statusConfig = getStatusConfig(order.status);
-  const isCancelled = order.status === 'cancelled';
-  const cardOpacity = isCancelled ? 0.5 : 1;
 
   return (
     <motion.div
@@ -205,18 +200,18 @@ const OrderCard = React.forwardRef<HTMLDivElement, OrderCardProps>(({ order, ind
                 View Details
             </Button>
 
-            {order.status === 'pending' && (
+            {isPending && (
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={(e) => {
                   e.stopPropagation();
-                  approve.mutate({ id: order.id, isApproved: true });
+                  handleApprove();
                 }}
-                disabled={approve.isPending}
+                disabled={isApproving}
                 className="action-button-approve"
               >
-                {approve.isPending ? '...' : '✓'}
+                {isApproving ? '...' : '✓'}
               </motion.button>
             )}
           </div>

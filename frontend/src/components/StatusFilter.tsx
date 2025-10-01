@@ -1,32 +1,20 @@
-import { useSearchParams } from 'react-router-dom';
 import { useState } from 'react';
 import { Filter, ChevronDown, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useStatusFilter } from '../hooks/useStatusFilter';
 
 export default function StatusFilter() {
-  const [params, set] = useSearchParams();
-  const v = params.get('status') ?? '';
+  // UI state only
   const [isOpen, setIsOpen] = useState(false);
   const [focused, setFocused] = useState(false);
 
-  const statuses = [
-    { value: '', label: 'All Statuses', color: 'gray' },
-    { value: 'pending', label: 'Pending', color: 'yellow' },
-    { value: 'approved', label: 'Approved', color: 'green' },
-    { value: 'rejected', label: 'Rejected', color: 'red' },
-    { value: 'cancelled', label: 'Cancelled', color: 'gray' },
-  ];
+  // All data logic in custom hook
+  const { currentStatus, currentStatusObject, statuses, handleStatusChange } = useStatusFilter();
 
-  function onChange(value: string) {
-    if (value) {
-      params.set('status', value);
-    } else {
-      params.delete('status');
-    }
-    params.set('page', '1');
-    set(params);
-    setIsOpen(false);
-  }
+  const handleChange = (value: string) => {
+    handleStatusChange(value);
+    setIsOpen(false); // UI concern - close dropdown
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -43,7 +31,7 @@ export default function StatusFilter() {
     }
   };
 
-  const currentStatus = statuses.find((s) => s.value === v) || statuses[0];
+
 
   return (
     <div className="relative">
@@ -70,13 +58,13 @@ export default function StatusFilter() {
             }`}
           />
           <span className="text-gray-700">Filter by Status</span>
-          {v && (
+          {currentStatus && (
             <span
               className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStatusBadge(
-                v
+                currentStatus
               )}`}
             >
-              {currentStatus.label}
+              {currentStatusObject.label}
             </span>
           )}
         </div>
@@ -120,7 +108,7 @@ export default function StatusFilter() {
               <div key={status.value}>
                 <motion.button
                   whileHover={{ backgroundColor: '#f8fafc' }}
-                  onClick={() => onChange(status.value)}
+                  onClick={() => handleChange(status.value)}
                   style={{
                     padding: '12px 16px',
                     borderRadius:
@@ -154,7 +142,7 @@ export default function StatusFilter() {
                       {status.label}
                     </span>
                   </div>
-                  {v === status.value && (
+                  {currentStatus === status.value && (
                     <motion.div
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
