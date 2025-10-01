@@ -1,22 +1,34 @@
 export const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
 
 export async function apiFetch(path: string, opt?: RequestInit) {
-  const r = await fetch(API_URL + path, {
-    headers: { 'Content-Type': 'application/json' },
-    ...opt,
-  });
-  if (!r.ok) throw new Error(await r.text());
-
-  // Handle empty responses (like 204 No Content)
-  const contentType = r.headers.get('content-type');
-  if (r.status === 204 || !contentType?.includes('application/json')) {
-    return null;
-  }
-
   try {
-    return await r.json();
-  } catch (e) {
-    console.error('Error parsing response:', e);
-    throw e;
+    const r = await fetch(API_URL + path, {
+      headers: { 'Content-Type': 'application/json' },
+      ...opt,
+    });
+
+    if (!r.ok) throw new Error(await r.text());
+
+    // Handle empty responses (like 204 No Content)
+    const contentType = r.headers.get('content-type');
+    if (r.status === 204 || !contentType?.includes('application/json')) {
+      return null;
+    }
+
+    try {
+      return await r.json();
+    } catch (e) {
+      console.error('Error parsing response:', e);
+      throw e;
+    }
+  } catch (error) {
+    // Network errors from fetch are always TypeError instances
+    // AND they don't have a response property
+    if (error instanceof TypeError && !('response' in error)) {
+      throw new Error('Connection failed. Please check your internet connection.');
+    }
+
+    // Re-throw other errors (HTTP errors, parsing errors, etc.)
+    throw error;
   }
 }

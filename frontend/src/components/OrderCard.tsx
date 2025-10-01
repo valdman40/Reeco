@@ -51,7 +51,7 @@ const OrderCard = React.forwardRef<HTMLDivElement, OrderCardProps>(({ order, ind
       animate={{ opacity: cardOpacity, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -20, scale: 0.95 }}
       transition={{
-        duration: 0.1,
+        duration: 0.3,
         delay: index * 0.05,
       }}
       whileHover={isCancelled ? {} : { y: -8, scale: 1.02 }}

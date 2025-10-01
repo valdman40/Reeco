@@ -41,97 +41,97 @@ export default function OrdersTable({ items }: { items: Order[] }) {
     <div className="orders-container">
       {/* Selection and Sort Controls */}
       <div className="orders-header">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-          {/* Selection Info and Actions */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            {selection.selectedCount > 0 && (
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  padding: '8px 16px',
-                  backgroundColor: '#f3f4f6',
-                  borderRadius: '8px',
-                  border: '1px solid #e5e7eb',
-                }}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+            {/* Selection Info and Actions */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              {selection.selectedCount > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    padding: '8px 16px',
+                    backgroundColor: '#f3f4f6',
+                    borderRadius: '8px',
+                    border: '1px solid #e5e7eb',
+                  }}
+                >
+                  <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#374151' }}>
+                    {selection.selectedCount} order{selection.selectedCount > 1 ? 's' : ''} selected
+                  </span>
+                  
+                  <Button
+                    onClick={handleCancelSelected}
+                    variant="secondary"
+                    disabled={cancelOrder.isPending}
+                    style={{
+                      backgroundColor: '#fee2e2',
+                      borderColor: '#fca5a5',
+                      color: '#dc2626',
+                      fontSize: '0.875rem',
+                      padding: '6px 12px',
+                    }}
+                  >
+                    <X style={{ width: '0.875rem', height: '0.875rem' }} />
+                    {cancelOrder.isPending ? 'Cancelling...' : 'Cancel Selected'}
+                  </Button>
+
+                  <button
+                    onClick={selection.clearSelection}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#6b7280',
+                      cursor: 'pointer',
+                      fontSize: '0.875rem',
+                      textDecoration: 'underline',
+                    }}
+                  >
+                    Clear Selection
+                  </button>
+                </motion.div>
+              )}
+            </div>
+
+            {/* Sort Controls */}
+            <motion.div style={{ display: 'flex', gap: '8px' }}>
+              <Button
+                onClick={() => toggle('total')}
+                variant="secondary"
+                className="sort-button"
               >
-                <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#374151' }}>
-                  {selection.selectedCount} order{selection.selectedCount > 1 ? 's' : ''} selected
+                <ArrowUpDown style={{ width: '1rem', height: '1rem' }} />
+                <span>
+                  Sort by Total
+                  {sort.startsWith('total:') && (
+                    <span style={{ marginLeft: '4px', fontSize: '0.8em', opacity: 0.7 }}>
+                      ({sort.includes('desc') ? '↓' : '↑'})
+                    </span>
+                  )}
                 </span>
-                
-                <Button
-                  onClick={handleCancelSelected}
-                  variant="secondary"
-                  disabled={cancelOrder.isPending}
-                  style={{
-                    backgroundColor: '#fee2e2',
-                    borderColor: '#fca5a5',
-                    color: '#dc2626',
-                    fontSize: '0.875rem',
-                    padding: '6px 12px',
-                  }}
-                >
-                  <X style={{ width: '0.875rem', height: '0.875rem' }} />
-                  {cancelOrder.isPending ? 'Cancelling...' : 'Cancel Selected'}
-                </Button>
-
-                <button
-                  onClick={selection.clearSelection}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: '#6b7280',
-                    cursor: 'pointer',
-                    fontSize: '0.875rem',
-                    textDecoration: 'underline',
-                  }}
-                >
-                  Clear Selection
-                </button>
-              </motion.div>
-            )}
+              </Button>
+              
+              <Button
+                onClick={() => toggle('createdAt')}
+                variant="secondary"
+                className="sort-button"
+              >
+                <ArrowUpDown style={{ width: '1rem', height: '1rem' }} />
+                <span>
+                  Sort by Created Date
+                  {sort.startsWith('createdAt:') && (
+                    <span style={{ marginLeft: '4px', fontSize: '0.8em', opacity: 0.7 }}>
+                      ({sort.includes('desc') ? '↓' : '↑'})
+                    </span>
+                  )}
+                </span>
+              </Button>
+            </motion.div>
           </div>
-
-          {/* Sort Controls */}
-          <motion.div style={{ display: 'flex', gap: '8px' }}>
-            <Button
-              onClick={() => toggle('total')}
-              variant="secondary"
-              className="sort-button"
-            >
-              <ArrowUpDown style={{ width: '1rem', height: '1rem' }} />
-              <span>
-                Sort by Total
-                {sort.startsWith('total:') && (
-                  <span style={{ marginLeft: '4px', fontSize: '0.8em', opacity: 0.7 }}>
-                    ({sort.includes('desc') ? '↓' : '↑'})
-                  </span>
-                )}
-              </span>
-            </Button>
-            
-            <Button
-              onClick={() => toggle('createdAt')}
-              variant="secondary"
-              className="sort-button"
-            >
-              <ArrowUpDown style={{ width: '1rem', height: '1rem' }} />
-              <span>
-                Sort by Created Date
-                {sort.startsWith('createdAt:') && (
-                  <span style={{ marginLeft: '4px', fontSize: '0.8em', opacity: 0.7 }}>
-                    ({sort.includes('desc') ? '↓' : '↑'})
-                  </span>
-                )}
-              </span>
-            </Button>
-          </motion.div>
         </div>
-      </div>
 
       {/* Orders Grid */}
       <div className="orders-grid">

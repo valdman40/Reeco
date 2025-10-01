@@ -10,6 +10,7 @@ import Pagination from '../components/Pagination';
 import OrderDetail from '../components/OrderDetail';
 import ErrorDisplay from '../components/common/ErrorDisplay';
 import LoadingMessage from '../components/common/LoadingMessage';
+import Button from '../components/common/buttons/Button';
 
 export default function OrdersPage() {
   const [params, setParams] = useSearchParams();
@@ -87,25 +88,38 @@ export default function OrdersPage() {
             
             {isLoading && <LoadingMessage message="Loading your orders..." />}
             {isError && (
-              <ErrorDisplay
-                title="Error Loading Orders"
-                message={
-                  error instanceof Error
-                    ? error.message
-                    : 'There was a problem loading your orders. Please try again.'
-                }
-              />
+              <>
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+                  <Button
+                    onClick={() => window.location.reload()}
+                    variant="secondary"
+                    style={{ width: '200px' }}
+                  >
+                    🔄 Refresh Page
+                  </Button>
+                </div>
+                <ErrorDisplay
+                  title="Error Loading Orders"
+                  message={
+                    error instanceof Error
+                      ? error.message
+                      : 'There was a problem loading your orders. Please try again.'
+                  }
+                />
+              </>
             )}
 
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5 }}
-            >
-              <Pagination total={data?.total || 0} limit={data?.limit || limit} />
-              <OrdersTable items={data?.items || []} />
-              <Pagination total={data?.total || 0} limit={data?.limit || limit} />
-            </motion.div>
+            {!isError && (!data?.items && !isLoading) && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5 }}
+              >
+                <Pagination total={data?.total || 0} limit={data?.limit || limit} />
+                <OrdersTable items={data?.items || []} />
+                <Pagination total={data?.total || 0} limit={data?.limit || limit} />
+              </motion.div>
+            )}
           </div>
         </motion.div>
 
