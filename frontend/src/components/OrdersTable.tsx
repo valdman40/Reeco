@@ -2,12 +2,13 @@ import { Order } from '../types/order';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Hash, ArrowUpDown, X } from 'lucide-react';
+import { Spin } from 'antd';
 import OrderCard from './OrderCard';
 import Button from './common/buttons/Button';
 import { useOrderSelection } from '../hooks/useOrderSelection';
 import { useCancelOrder } from '../hooks/useCancelOrder';
 
-export default function OrdersTable({ items }: { items: Order[] }) {
+export default function OrdersTable({ items, isLoading }: { items: Order[]; isLoading?: boolean }) {
   const [params, set] = useSearchParams();
   const sort = params.get('sort') ?? 'createdAt:desc';
   // Remove client-side sorting - server now handles this
@@ -42,8 +43,31 @@ export default function OrdersTable({ items }: { items: Order[] }) {
       {/* Selection and Sort Controls */}
       <div className="orders-header">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-            {/* Selection Info and Actions */}
+            {/* Loading Indicator and Selection Info */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              {/* Loading Indicator */}
+              {isLoading && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '8px 12px',
+                    backgroundColor: '#f0f9ff',
+                    borderRadius: '6px',
+                    border: '1px solid #bae6fd',
+                  }}
+                >
+                  <Spin size="small" />
+                  <span style={{ fontSize: '0.875rem', color: '#0369a1', fontWeight: '500' }}>
+                    Loading...
+                  </span>
+                </motion.div>
+              )}
+
               {selection.selectedCount > 0 && (
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
@@ -62,7 +86,8 @@ export default function OrdersTable({ items }: { items: Order[] }) {
                   <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#374151' }}>
                     {selection.selectedCount} order{selection.selectedCount > 1 ? 's' : ''} selected
                   </span>
-                  
+
+                                  
                   <Button
                     onClick={handleCancelSelected}
                     variant="secondary"
@@ -129,7 +154,7 @@ export default function OrdersTable({ items }: { items: Order[] }) {
                   )}
                 </span>
               </Button>
-            </motion.div>
+              </motion.div>
           </div>
         </div>
 

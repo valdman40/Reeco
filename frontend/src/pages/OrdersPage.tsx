@@ -32,7 +32,7 @@ export default function OrdersPage() {
     sort,  // ← Now included in server request!
   }), [page, limit, q, status, sort]);
   
-  const { data, isLoading, isError, error, refetch } = useOrders(queryParams);
+  const { data, isLoading, isError, error, refetch, isFetching } = useOrders(queryParams);
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -109,14 +109,14 @@ export default function OrdersPage() {
               </>
             )}
 
-            {!isError && (!data?.items && !isLoading) && (
+            {!isError && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5 }}
               >
                 <Pagination total={data?.total || 0} limit={data?.limit || limit} />
-                <OrdersTable items={data?.items || []} />
+                <OrdersTable items={data?.items || []} isLoading={isFetching} />
                 <Pagination total={data?.total || 0} limit={data?.limit || limit} />
               </motion.div>
             )}
