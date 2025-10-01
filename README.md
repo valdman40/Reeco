@@ -1,24 +1,20 @@
 # Full-Stack Orders Management Assignment
-
-This repository contains a complete full-stack application for managing orders, with **intentional bugs** included for testing purposes. Choose one backend and work with the provided frontend to build a comprehensive orders management system.
-
-## Repository Structure
-
-### Backends (Choose One)
+### Backends
 - **`backend/`** — Node.js + Express + TypeScript + SQLite + Zod
 
 ### Frontend
 - **`frontend/`** — React + TypeScript + React Query + React Router + Vitest
 
 ### Documentation
-- **`fullstack-assignment-readme.md`** — Complete assignment instructions
-- Each folder has its own detailed README with setup instructions and schemas
+- **`backend/README.md`** — Backend setup, architecture, API schemas, and bug descriptions
+- **`frontend/README.md`** — Frontend setup, component architecture, refactoring details, and bug fixes  
+- **`TimeLog.md`** — Detailed time breakdown of development phases (16.5 hours total)
+- **`AI_LOG.md`** — Documentation of AI assistance throughout development process
+- **`fullstack-assignment-readme.md`** — Original assignment instructions and requirements
 
 ## Quick Start
 
-### 1. Choose and Start a Backend
-
-**Option A: Node.js Backend**
+### 1. Start a Backend
 ```bash
 cd backend
 npm install
@@ -39,49 +35,25 @@ Copy and configure `.env` in frontend/ (use `.env.example` as template):
 VITE_API_URL=http://localhost:3001
 ```
 
-## API Endpoints (Both Backends)
-- `GET /orders?page=&limit=&q=&status=` — List orders with pagination
-- `GET /orders/:id` — Get single order details  
-- `PATCH /orders/:id` — Update order approval status
+## Development Notes & Reflections
 
-## Intentional Bugs Included
+### What Went Well:
+- Systematic approach to bug identification and fixing
+- Clean architecture refactoring with proper separation of concerns
+- Comprehensive testing and documentation throughout development
+- Good balance between feature development and code quality
 
-### Backend Bugs (Both Stacks)
-1. **BE-1**: Off-by-one pagination error
-2. **BE-2**: N+1 query problem for item counts
-3. **BE-3**: Validation errors return 500 instead of 400
+### Challenges Faced:
+- React Query v5 compatibility issues required careful migration
+- CSS flexbox and gap properties needed iterative debugging
+- N+1 query problem required understanding database optimization
+- Balancing feature completeness with time constraints
 
-### Frontend Bugs
-1. **FE-1**: Stale list after approve action
-2. **FE-2**: Flicker due to unstable query keys
-3. **FE-3**: Sort not fully synchronized
-
-## Testing
-Each component includes comprehensive test suites:
-- **Backend**: API endpoint and integration tests
-- **Frontend**: Component tests with MSW for API mocking
-
-Run tests:
-```bash
-# Backend (Node.js)
-cd backend && npm test
-
-# Frontend  
-cd frontend && npm test
-```
-
-## Assignment Goals
-1. **Bug Fixes**: Identify and fix all intentional bugs
-2. **Feature Development**: Complete the orders management flow
-3. **Refactoring**: Improve code structure and maintainability  
-4. **Testing**: Add meaningful tests for new functionality
-
-## Documentation
-- Each folder contains a detailed README explaining:
-  - Setup and run instructions
-  - Project structure and architecture
-  - API schemas and data types
-  - Bug locations and descriptions
-  - Testing strategies
-
-See `fullstack-assignment-readme.md` for complete assignment details and requirements.
+### If I Had More Time:
+- Complete comprehensive testing suite (both frontend and backend), especially for order cancellation flow
+- Refactor backend to modularize validation, DB access, and routing concerns
+- Implement more advanced filtering options (date ranges, amount ranges)
+- Add animations and transitions for better user experience
+- Optimize bundle size and implement code splitting
+- Add accessibility features and ARIA labels
+- Implement real-time updates with WebSocket connection
