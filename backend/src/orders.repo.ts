@@ -46,10 +46,14 @@ export function listOrders(filter: {
     sql += ' AND status = ?';
     params.push(filter.status);
   }
-  // Add sorting
+  // Add sorting with enhanced validation
   const validSortColumns = ['created_at', 'total_cents', 'customer', 'status'];
   const sortColumn = validSortColumns.includes(sortBy) ? sortBy : 'created_at';
-  const order = sortOrder?.toLowerCase() === 'asc' ? 'ASC' : 'DESC';
+
+  const validOrders = ['asc', 'desc'];
+  const order = validOrders.includes(sortOrder?.toLowerCase())
+    ? sortOrder.toUpperCase()
+    : 'DESC';
 
   if (sortColumn === 'created_at') {
     sql += ` ORDER BY datetime(${sortColumn}) ${order}`;
