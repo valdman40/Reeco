@@ -119,9 +119,19 @@ export default function OrdersPage() {
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5 }}
               >
-                <Pagination total={data?.total || 0} limit={data?.limit || limit} />
+                <Pagination 
+                  total={data?.total || 0} 
+                  limit={data?.limit || limit}
+                  searchQuery={q}
+                  statusFilter={status}
+                />
                 <OrdersTable items={data?.items || []} isLoading={isFetching} />
-                <Pagination total={data?.total || 0} limit={data?.limit || limit} />
+                <Pagination 
+                  total={data?.total || 0} 
+                  limit={data?.limit || limit}
+                  searchQuery={q}
+                  statusFilter={status}
+                />
               </motion.div>
             )}
           </div>

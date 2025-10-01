@@ -1,15 +1,18 @@
-import { useSearchParams } from 'react-router-dom';
-
 interface ResultsSummaryProps {
   total: number;
   currentPage: number;
   limit: number;
+  searchQuery?: string;
+  statusFilter?: string;
 }
 
-export default function ResultsSummary({ total, currentPage, limit }: ResultsSummaryProps) {
-  const [params] = useSearchParams();
-  const searchQuery = params.get('q');
-  const statusFilter = params.get('status');
+export default function ResultsSummary({ 
+  total, 
+  currentPage, 
+  limit, 
+  searchQuery, 
+  statusFilter 
+}: ResultsSummaryProps) {
   
   const startItem = (currentPage - 1) * limit + 1;
   const endItem = Math.min(currentPage * limit, total);
