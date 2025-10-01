@@ -3,10 +3,11 @@ import db from './db.js';
 export type OrderRow = {
   id: string;
   customer: string;
-  status: 'pending' | 'approved' | 'rejected';
+  status: 'pending' | 'approved' | 'rejected' | 'cancelled';
   total_cents: number;
   created_at: string;
   is_approved: 0 | 1;
+  is_cancelled: 0 | 1;
 };
 
 export function getOrdersCount(filter: { q?: string; status?: string }) {
@@ -55,6 +56,7 @@ export function listOrders(filter: {
     total_cents: r.total_cents,
     created_at: r.created_at,
     is_approved: r.is_approved,
+    is_cancelled: r.is_cancelled,
   }));
 }
 
@@ -71,5 +73,14 @@ export function patchOrder(id: string, isApproved: boolean) {
   const res = db
     .prepare('UPDATE orders SET is_approved = ? , status = ? WHERE id = ?')
     .run(isApproved ? 1 : 0, isApproved ? 'approved' : 'pending', id);
+  return res.changes > 0;
+}
+
+export function cancelOrder(id: string) {
+  const res = db
+    .prepare(
+      'UPDATE orders SET is_cancelled = 1, status = ? WHERE id = ? AND is_cancelled = 0'
+    )
+    .run('cancelled', id);
   return res.changes > 0;
 }

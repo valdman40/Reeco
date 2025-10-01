@@ -13,6 +13,7 @@ import {
   listOrders,
   getOrder,
   patchOrder,
+  cancelOrder,
 } from './orders.repo.js';
 
 const app = express();
@@ -93,8 +94,26 @@ app.get('/orders/:id', (req, res, next) => {
 app.patch('/orders/:id', (req, res, next) => {
   try {
     const { id } = idParamSchema.parse(req.params);
-    const { isApproved } = patchBodySchema.parse(req.body);
-    const ok = patchOrder(id, isApproved);
+    const body = patchBodySchema.parse(req.body);
+
+    let ok: boolean;
+    if (body.isCancelled !== undefined) {
+      if (!body.isCancelled) {
+        res
+          .status(400)
+          .json({ message: 'isCancelled must be true when provided' });
+        return;
+      }
+      ok = cancelOrder(id);
+    } else if (body.isApproved !== undefined) {
+      ok = patchOrder(id, body.isApproved);
+    } else {
+      res
+        .status(400)
+        .json({ message: 'Either isApproved or isCancelled must be provided' });
+      return;
+    }
+
     if (!ok) throw new HttpError(404, 'Not found');
     res.json({ ok: true });
   } catch (e: any) {
@@ -125,6 +144,7 @@ function mapRow(row: any) {
     total: row.total_cents / 100,
     createdAt: row.created_at,
     isApproved: !!row.is_approved,
+    isCancelled: !!row.is_cancelled,
     lineItemCount: row.lineItemCount ?? undefined,
   };
 }
