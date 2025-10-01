@@ -149,21 +149,33 @@ backend/
 
 **Note**: The backend uses `tsx` for direct TypeScript execution in development. For production deployment, you may want to add build and start scripts.
 
-## Intentional Bugs (For Assignment)
-This backend contains three intentional bugs that need to be identified and fixed:
+## Intentional Bugs (For Assignment) - ✅ FIXED
+This backend originally contained three intentional bugs that have been identified and resolved:
 
-### Bug Issues & Impact
+### Bug Issues & Solutions
 
-**Bug 1 - Pagination Problem:**
-This bug causes incorrect data to be returned when paginating through orders. Users will experience skipped records or duplicate records when navigating between pages, making the pagination unreliable.
+**✅ Bug BE-1 - Pagination Problem (FIXED):**
+- **Issue**: Off-by-one error in offset calculation (`offset = page * limit` instead of `(page - 1) * limit`)
+- **Location**: `src/orders.repo.ts` - `listOrders()` function
+- **Impact**: Users experienced skipped records when navigating between pages (first 10 records were never shown)
+- **Fixed in**: Commit `607dd86` - Corrected pagination offset calculation
+- **Solution**: Changed `const offset = page * limit` to `const offset = (page - 1) * limit`
 
-**Bug 2 - Performance Issue:**
-This bug creates a database performance bottleneck that becomes worse as the number of orders increases. Each order triggers additional database queries, leading to slow response times and potential database connection exhaustion under load.
+**✅ Bug BE-2 - Performance Issue (FIXED):**
+- **Issue**: N+1 query problem - one additional database query per order to count line items
+- **Location**: `src/orders.repo.ts` - `listOrders()` function  
+- **Impact**: Severe performance degradation (21+ queries for 20 orders), potential connection exhaustion
+- **Fixed in**: Commit `0a4ebaf` - Eliminated N+1 query pattern
+- **Solution**: Recognized that `lineItemCount` is not needed in the main orders list view (only when requesting single order details), so we completely removed it from `listOrders()`. For single order requests, we implemented an efficient LEFT JOIN query in `getOrder()`. Alternative solution would have been to use LEFT JOIN in list view, but removing unnecessary data improved both performance and API design.
 
-**Bug 3 - HTTP Status Code Issue:**  
-This bug returns incorrect HTTP status codes for client errors, making it difficult for frontend applications to properly handle validation failures and provide appropriate user feedback.
+**✅ Bug BE-3 - HTTP Status Code Issue (FIXED):**
+- **Issue**: Validation errors returned 500 Internal Server Error instead of 400 Bad Request
+- **Location**: `src/server.ts` - PATCH `/orders/:id` endpoint
+- **Impact**: Frontend couldn't distinguish client vs server errors, poor debugging experience, connection issues due to improper error handling
+- **Fixed in**: Commit `bed5fd5` - Proper ZodError handling with correct status codes
+- **Solution**: Added `instanceof ZodError` check and return `400` status instead of `500`. Also improved connection stability by properly handling validation errors without causing server-side exceptions.
 
-### Testing Scenarios
+### Original Testing Scenarios
 
 **Testing Bug 1 (Pagination):**
 ```bash

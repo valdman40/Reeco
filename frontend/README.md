@@ -95,10 +95,11 @@ frontend/
 export type Order = {
   id: string;
   customer: string;
-  status: "pending" | "approved" | "rejected";
+  status: "pending" | "approved" | "rejected" | "cancelled";
   total: number;
   createdAt: string;
   isApproved: boolean;
+  isCancelled: boolean;
   lineItemCount?: number;
 };
 
@@ -176,31 +177,53 @@ All application state is synchronized with the URL:
 - **Component Tests**: Test individual components in isolation
 - **Mock API**: Realistic API responses using MSW handlers
 
-## Intentional Bugs (For Assignment)
+## Bug Analysis & Solutions (Assignment Completed)
 
-This frontend contains two intentional bugs that need to be identified and fixed:
+This frontend originally contained intentional bugs that have been successfully identified, analyzed, and fixed during development:
 
-1. **FE-1: Stale list after approve**
-   **What to look for**: After approving or unapproving an order, the orders list doesn't reflect the change immediately. You might see the old approval status until you manually refresh the page or navigate away and back.
+### ✅ **FE-1: Stale list after approve** - RESOLVED
+   **Problem Identified**: After approving or unapproving an order, the orders list didn't reflect changes immediately due to missing cache invalidation in the mutation logic.
 
-   **Scenario**: 
-   - Load the orders page
-   - Click approve/unapprove on any order
-   - Notice the list still shows the old status even though the action succeeded
-   - Only after a page refresh does the updated status appear
+   **Root Cause**: The `useApproveOrder` hook wasn't invalidating React Query cache after successful mutations, causing stale data to persist in the orders list.
 
-   **Area to investigate**: The approval mutation logic and how it handles cache updates.
+   **Solution Applied** (Commit `87a3646`):
+   ```typescript
+   // Added proper cache invalidation in useApproveOrder.ts
+   onSettled: (_data, _error, variables) => {
+     queryClient.invalidateQueries({ queryKey: ['orders'] });
+     queryClient.invalidateQueries({ queryKey: ['order', variables.id] });
+   },
+   ```
 
-2. **FE-2: Flicker due to unstable keys**
-   **What to look for**: Visual flickering or jumpy behavior when the orders list refetches data. Components might seem to "flash" or redraw unnecessarily.
+   **Result**: Orders list now updates immediately after approve/unapprove actions without requiring page refresh.
 
-   **Scenario**:
-   - Load the orders page  
-   - Perform actions that trigger refetch (searching, filtering, pagination)
-   - Watch for visual flickering or unstable rendering during data updates
-   - The UI might appear to "jump" or redraw components that shouldn't change
+### ✅ **FE-2: Flicker due to unstable keys** - RESOLVED  
+   **Problem Identified**: Visual flickering occurred during data refetches due to unstable React Query keys that included undefined values, causing unnecessary component re-renders.
 
-   **Area to investigate**: How list items are keyed and rendered during data updates.
+   **Root Cause**: Query keys included undefined values (`q`, `status`, `sort`) which created different key signatures on each render, breaking React Query's caching mechanism.
+
+   **Solution Applied** (Commit `ad67c7f`):
+   ```typescript
+   // Fixed query key stability in queryKeys.ts
+   orders: (p) => [
+     'orders',
+     {
+       page: p.page,
+       limit: p.limit,
+       // Only include defined values to ensure stable keys
+       ...(p.q && { q: p.q }),
+       ...(p.status && { status: p.status }),
+       ...(p.sort && { sort: p.sort }),
+     },
+   ]
+   ```
+
+   **Result**: Eliminated flickering by ensuring consistent query keys, allowing React Query to properly cache and reuse data.
+
+### ✅ **Bonus FE-3: Sort synchronization** - RESOLVED
+   **Problem Discovered**: Sort state wasn't properly synchronized between URL parameters, API requests, and React Query cache.
+
+   **Solution Applied** (Commit `6e3702f`): Enhanced query key factory and added proper sort parameter parsing to maintain consistency across the application state.
 
 ## Environment Setup
 
@@ -233,9 +256,65 @@ VITE_API_URL=http://localhost:3001
 
 The frontend expects these backend endpoints:
 
-- `GET /orders?page=&limit=&q=&status=` - List orders with pagination
+- `GET /orders?page=&limit=&q=&status=&sort=` - List orders with pagination and sorting
+  - `sort`: Format is `field:direction` (e.g., `total:desc`, `createdAt:asc`)
 - `GET /orders/:id` - Get single order details
 - `PATCH /orders/:id` - Update order approval status
+
+## Refactor
+
+This project underwent comprehensive architecture refactoring to implement proper separation of concerns and follow React best practices. The refactoring focused on extracting business logic from UI components into custom hooks.
+
+### Major Refactoring Areas
+
+#### 1. Component-to-Hook Logic Extraction
+**Problem**: Components were tightly coupled with business logic, URL management, and data fetching, making them difficult to test and reuse.
+
+**Solution**: Created dedicated custom hooks to handle specific concerns:
+
+- **`useOrdersTable`**: Extracted table sorting, multi-select logic, and order actions
+- **`useStatusFilter`**: Extracted status filtering and URL state management  
+- **`useSearchInput`**: Extracted search debouncing and URL synchronization
+- **`useOrderCard`**: Extracted navigation and approval logic for individual orders
+- **`usePagination`**: Extracted pagination logic and URL navigation
+
+#### 2. Pure UI Components
+**Transformation**: All interactive components were refactored into pure presentational components:
+
+- **OrdersTable**: Now receives sorted data and handlers as props
+- **StatusFilter**: Pure dropdown component with onChange handlers
+- **SearchInput**: Pure input field with debounced onChange
+- **OrderCard**: Pure display component with click handlers
+- **Pagination**: Pure navigation component with page handlers
+- **ResultsSummary**: Pure display component receiving search/filter data as props
+
+#### 3. Clear Data Flow Architecture
+**Before**: Components directly accessed URL parameters and managed their own state
+```
+Component → useSearchParams → Business Logic → State Management
+```
+
+**After**: Clean unidirectional data flow
+```
+OrdersPage → Custom Hooks → Pure Components → User Interaction → Hooks → URL/State
+```
+
+#### 4. Benefits Achieved
+
+- **Testability**: Business logic can be tested independently of UI components
+- **Reusability**: Pure components can be reused with different data sources
+- **Maintainability**: Clear separation makes code easier to understand and modify
+- **Performance**: Reduced re-renders through better component isolation
+- **Type Safety**: Better TypeScript support with explicit prop interfaces
+
+#### 5. Consistent Architecture Pattern
+All interactive components now follow the same pattern:
+1. Custom hook handles business logic and state management
+2. Component receives data and handlers as props
+3. Component focuses solely on rendering and user interaction
+4. URL state and side effects are managed in hooks
+
+This refactoring transformed the codebase from mixed concerns to clean architecture, making it production-ready and maintainable.
 
 ## Performance Considerations
 
