@@ -51,9 +51,11 @@ VITE_API_URL=http://localhost:3001
 
 ### If I Had More Time:
 - Complete comprehensive testing suite (both frontend and backend), especially for order cancellation flow
+- Add end-to-end testing with Cypress for complete user journey validation
+- Test application performance and behavior at larger scale (thousands of orders, pagination efficiency)
 - Refactor backend to modularize validation, DB access, and routing concerns
 - Implement more advanced filtering options (date ranges, amount ranges)
 - Add animations and transitions for better user experience
-- Optimize bundle size and implement code splitting
-- Add accessibility features and ARIA labels
-- Implement real-time updates with WebSocket connection
+- Implement "Download PDF" and "Edit Order" functionality for individual orders
+- Add batch cancellation mechanism to cancel multiple orders in a single network request
+- Dive deeper into tailwind to understand better how it works and improve the css

@@ -5,6 +5,10 @@ This is a Node.js Express backend for managing orders, built with TypeScript, SQ
 
 **⚠️ IMPORTANT: This backend contains intentional bugs for testing purposes.**
 
+## Prerequisites
+- Node.js 18+ 
+- npm or yarn package manager
+
 ## Quick Start
 ```bash
 npm install
@@ -228,10 +232,6 @@ Tests cover:
 - Database seeding creates sample data via `npm run seed`
 - CORS is enabled for frontend development
 - The database file (`data/app.db`) is created automatically and should not be committed to version control
-
-## Prerequisites
-- Node.js 18+ 
-- npm or yarn package manager
 
 ## Environment Setup
 The server runs on port 3001 by default. Make sure your frontend's `VITE_API_URL` points to `http://localhost:3001`.
