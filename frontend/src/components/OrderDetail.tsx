@@ -4,13 +4,14 @@ import { User, Hash, Package, DollarSign, FileText, XCircle } from 'lucide-react
 import { format } from 'date-fns';
 import StatusBadge from './common/StatusBadge';
 import Button from './common/buttons/Button';
+import ErrorDisplay from './common/ErrorDisplay';
 
 interface OrderDetailProps {
   orderId: string;
 }
 
 export default function OrderDetail({ orderId }: OrderDetailProps) {
-  let { data, isLoading } = useOrder(orderId);
+  let { data, isLoading, isError, error, refetch } = useOrder(orderId);
 
   return (
     <div className="p-6">
@@ -32,7 +33,26 @@ export default function OrderDetail({ orderId }: OrderDetailProps) {
 
       {/* Content */}
       <div>
-        {!isLoading && !data && (
+        {/* Error handling */}
+        {isError && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="p-8">
+            <div className="flex justify-center mb-4">
+              <Button onClick={() => refetch()} variant="secondary">
+                🔄 Retry
+              </Button>
+            </div>
+            <ErrorDisplay
+              title="Error Loading Order"
+              message={
+                error instanceof Error
+                  ? error.message
+                  : 'There was a problem loading the order details. Please try again.'
+              }
+            />
+          </motion.div>
+        )}
+
+        {!isLoading && !isError && !data && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="p-8 text-center">
             <div className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <XCircle className="w-12 h-12 text-red-500" />
@@ -42,7 +62,7 @@ export default function OrderDetail({ orderId }: OrderDetailProps) {
           </motion.div>
         )}
 
-        {!isLoading && data && (
+        {!isLoading && !isError && data && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
