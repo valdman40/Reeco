@@ -1,144 +1,308 @@
 import 'dotenv/config';
-import express from 'express';
-import cors from 'cors';
-import { HttpError } from './errors.js';
-import { ZodError } from 'zod';
+import express, { Request, Response, NextFunction } from 'express';
+import { serverConfig, monitoringConfig, isDevelopment } from './config.js';
+import { appLogger, httpLogger, correlationMiddleware } from './logger.js';
 import {
-  listQuerySchema,
-  idParamSchema,
-  patchBodySchema,
-} from './validation.js';
+  BaseError,
+  HttpError,
+  ValidationError,
+  BusinessError,
+  DatabaseError,
+  ErrorFactory,
+} from './errors.js';
+
+// Security middleware
+import {
+  createRateLimiter,
+  securityHeaders,
+  corsMiddleware,
+  compressionMiddleware,
+  requestSizeLimiter,
+  sanitizeInput,
+  securityEventLogger,
+} from './middleware/security.js';
+
+// Validation middleware
+import {
+  validateListQuery,
+  validateIdParam,
+  validatePatchBody,
+  validateOrderStatus,
+} from './middleware/validation.js';
+
+// Monitoring middleware
+import {
+  requestMetrics,
+  healthCheckHandler,
+  metricsHandler,
+  errorTracker,
+} from './middleware/monitoring.js';
+
+// Repository
 import {
   getOrdersCount,
   listOrders,
   getOrder,
-  patchOrder,
+  updateOrderApproval,
   cancelOrder,
+  OrderRow,
 } from './orders.repo.js';
 
+// Create Express application
 const app = express();
-app.use(
-  cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-    credentials: true,
-  })
-);
-app.use(express.json());
 
-// Custom request logging middleware
-app.use((req, res, next) => {
-  const start = Date.now();
+// Trust proxy if configured (for rate limiting, IP detection)
+if (serverConfig.trustProxy) {
+  app.set('trust proxy', 1);
+}
 
-  // Log incoming request
-  console.log(`[DEBUG] ${req.method} ${req.url} (start)`);
+// Apply security middleware first
+app.use(securityHeaders);
+app.use(corsMiddleware);
+app.use(compressionMiddleware);
+app.use(createRateLimiter());
 
-  // Log request body for non-GET requests (excluding sensitive data)
-  if (req.method !== 'GET' && Object.keys(req.body || {}).length > 0) {
-    console.log(`[DEBUG] Request body:`, JSON.stringify(req.body, null, 2));
-  }
+// Body parsing with size limits
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+app.use(requestSizeLimiter);
 
-  // Log query parameters if present
-  if (Object.keys(req.query).length > 0) {
-    console.log(`[DEBUG] Query params:`, JSON.stringify(req.query));
-  }
+// Logging and correlation
+app.use(httpLogger);
+app.use(correlationMiddleware);
 
-  // Override res.json to log response
-  const originalJson = res.json;
-  res.json = function (data) {
-    const duration = Date.now() - start;
-    console.log(
-      `[DEBUG] ${req.method} ${req.url} - ${res.statusCode} (end) - ${duration}ms`
-    );
+// Security event logging
+app.use(securityEventLogger);
 
-    // Log response data for errors or if it's small
-    if (res.statusCode >= 400 || JSON.stringify(data).length < 500) {
-      console.log(`[DEBUG] Response:`, JSON.stringify(data, null, 2));
-    } else {
-      console.log(
-        `[DEBUG] Response: [Large response - ${
-          JSON.stringify(data).length
-        } chars]`
-      );
+// Input sanitization
+app.use(sanitizeInput);
+
+// Request metrics
+if (monitoringConfig.enableMetrics) {
+  app.use(requestMetrics);
+}
+
+// Health check endpoint (before auth/validation for monitoring)
+app.get(monitoringConfig.healthCheckPath, healthCheckHandler);
+
+// Metrics endpoint
+if (monitoringConfig.enableMetrics) {
+  app.get(monitoringConfig.metricsPath, metricsHandler);
+}
+
+// API Routes
+app.get(
+  '/orders',
+  validateListQuery,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const logger = (req as any).logger;
+      const correlationId = (req as any).correlationId;
+      const errorFactory = new ErrorFactory(correlationId);
+
+      // Get validated query parameters
+      const query = (req as any).validatedQuery;
+      const { page, limit, q, status, sortBy, sortOrder } = query;
+
+      logger.info('Listing orders', {
+        page,
+        limit,
+        searchQuery: q,
+        status,
+        sortBy,
+        sortOrder,
+      });
+
+      const [items, total] = await Promise.all([
+        listOrders({ page, limit, q, status, sortBy, sortOrder }),
+        getOrdersCount({ q, status }),
+      ]);
+
+      const response = {
+        items: items.map(mapOrderRow),
+        page,
+        limit,
+        total,
+        hasMore: page * limit < total,
+      };
+
+      logger.info('Orders retrieved successfully', {
+        count: items.length,
+        total,
+        hasMore: response.hasMore,
+      });
+
+      res.json(response);
+    } catch (error) {
+      next(error);
     }
+  }
+);
 
-    return originalJson.call(this, data);
+app.get(
+  '/orders/:id',
+  validateIdParam,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const logger = (req as any).logger;
+      const correlationId = (req as any).correlationId;
+      const { id } = req.params;
+
+      logger.info('Retrieving order', { orderId: id });
+
+      const order = getOrder(id, correlationId);
+      const mappedOrder = mapOrderRow(order);
+
+      logger.info('Order retrieved successfully', {
+        orderId: id,
+        status: order.status,
+        lineItemCount: order.lineItemCount,
+      });
+
+      res.json(mappedOrder);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+app.patch(
+  '/orders/:id',
+  validateIdParam,
+  validatePatchBody,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const logger = (req as any).logger;
+      const correlationId = (req as any).correlationId;
+      const errorFactory = new ErrorFactory(correlationId);
+      const { id } = req.params;
+      const body = req.body;
+
+      logger.info('Updating order', {
+        orderId: id,
+        action: body.isApproved !== undefined ? 'approval' : 'cancellation',
+        value: body.isApproved ?? body.isCancelled,
+      });
+
+      // Get current order to validate status transition
+      const currentOrder = getOrder(id, correlationId);
+
+      if (body.isCancelled !== undefined) {
+        // Validate cancellation
+        const validation = validateOrderStatus(currentOrder.status, 'cancel');
+        if (!validation.isValid) {
+          throw errorFactory.createInvalidOrderStatusError(
+            id,
+            currentOrder.status,
+            'cancel'
+          );
+        }
+
+        cancelOrder(id, correlationId);
+
+        logger.info('Order cancelled successfully', { orderId: id });
+      } else if (body.isApproved !== undefined) {
+        // Validate approval/rejection
+        const action = body.isApproved ? 'approve' : 'reject';
+        const validation = validateOrderStatus(currentOrder.status, action);
+        if (!validation.isValid) {
+          throw errorFactory.createInvalidOrderStatusError(
+            id,
+            currentOrder.status,
+            action
+          );
+        }
+
+        updateOrderApproval(id, body.isApproved, correlationId);
+
+        logger.info('Order approval updated successfully', {
+          orderId: id,
+          isApproved: body.isApproved,
+        });
+      }
+
+      res.json({
+        success: true,
+        message: 'Order updated successfully',
+        correlationId,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// 404 handler for undefined routes
+app.use('*', (req: Request, res: Response) => {
+  const correlationId = (req as any).correlationId;
+  const logger = (req as any).logger;
+
+  logger.warn('Route not found', {
+    method: req.method,
+    path: req.originalUrl,
+  });
+
+  res.status(404).json({
+    error: {
+      code: 'ROUTE_NOT_FOUND',
+      message: `Route ${req.method} ${req.originalUrl} not found`,
+      correlationId,
+      timestamp: new Date().toISOString(),
+    },
+  });
+});
+
+// Error tracking middleware
+app.use(errorTracker);
+
+// Global error handler
+app.use((error: any, req: Request, res: Response, next: NextFunction) => {
+  const correlationId = (req as any).correlationId;
+  const logger = (req as any).logger;
+
+  // Handle our custom errors
+  if (error instanceof BaseError) {
+    const statusCode = error.getHttpStatus();
+
+    logger.warn('Business error occurred', {
+      error: error.toJSON(),
+      statusCode,
+    });
+
+    return res.status(statusCode).json({
+      error: error.toJSON(),
+    });
+  }
+
+  // Handle unexpected errors
+  logger.error('Unexpected error occurred', {
+    error: {
+      name: error.name,
+      message: error.message,
+      stack: isDevelopment() ? error.stack : undefined,
+    },
+    request: {
+      method: req.method,
+      url: req.url,
+      headers: req.headers,
+    },
+  });
+
+  const errorResponse = {
+    error: {
+      code: 'INTERNAL_SERVER_ERROR',
+      message: isDevelopment() ? error.message : 'An unexpected error occurred',
+      correlationId,
+      timestamp: new Date().toISOString(),
+      ...(isDevelopment() && { stack: error.stack }),
+    },
   };
 
-  next();
+  res.status(500).json(errorResponse);
 });
 
-app.get('/health', (_req, res) => res.json({ ok: true }));
-
-app.get('/orders', (req, res, next) => {
-  try {
-    const { page, limit, q, status, sortBy, sortOrder } = listQuerySchema.parse(
-      req.query
-    );
-    const items = listOrders({ page, limit, q, status, sortBy, sortOrder });
-    const total = getOrdersCount({ q, status });
-    res.json({ items: items.map(mapRow), page, limit, total });
-  } catch (e) {
-    next(e);
-  }
-});
-
-app.get('/orders/:id', (req, res, next) => {
-  try {
-    const { id } = idParamSchema.parse(req.params);
-    const row = getOrder(id);
-    if (!row) throw new HttpError(404, 'Not found');
-    res.json(mapRow(row));
-  } catch (e) {
-    next(e);
-  }
-});
-
-app.patch('/orders/:id', (req, res, next) => {
-  try {
-    const { id } = idParamSchema.parse(req.params);
-    const body = patchBodySchema.parse(req.body);
-
-    let ok: boolean;
-    if (body.isCancelled !== undefined) {
-      if (!body.isCancelled) {
-        res
-          .status(400)
-          .json({ message: 'isCancelled must be true when provided' });
-        return;
-      }
-      ok = cancelOrder(id);
-    } else if (body.isApproved !== undefined) {
-      ok = patchOrder(id, body.isApproved);
-    } else {
-      res
-        .status(400)
-        .json({ message: 'Either isApproved or isCancelled must be provided' });
-      return;
-    }
-
-    if (!ok) throw new HttpError(404, 'Not found');
-    res.json({ ok: true });
-  } catch (e: any) {
-    if (e instanceof ZodError) {
-      // Caught a Zod validation error - respond with 400 BE-3
-      res.status(400).json({ message: 'validation failed', error: e });
-      return;
-    }
-    next(e);
-  }
-});
-
-// error handler
-app.use((err: any, _req: any, res: any, _next: any) => {
-  if (err instanceof HttpError) {
-    res.status(err.status).json({ message: err.message });
-    return;
-  }
-  console.error(err);
-  res.status(500).json({ message: 'internal error' });
-});
-
-function mapRow(row: any) {
+// Order row mapper
+function mapOrderRow(row: OrderRow & { lineItemCount?: number }) {
   return {
     id: row.id,
     customer: row.customer,
@@ -147,11 +311,76 @@ function mapRow(row: any) {
     createdAt: row.created_at,
     isApproved: !!row.is_approved,
     isCancelled: !!row.is_cancelled,
-    lineItemCount: row.lineItemCount ?? undefined,
+    ...(row.lineItemCount !== undefined && {
+      lineItemCount: row.lineItemCount,
+    }),
   };
 }
 
-const port = process.env.PORT ?? 3001;
-app.listen(port, () => {
-  console.log(`Node backend listening on :${port}`);
-});
+// Graceful shutdown
+const gracefulShutdown = (signal: string) => {
+  appLogger.info(`Received ${signal}. Starting graceful shutdown...`);
+
+  // Stop accepting new requests if server is running
+  if (server) {
+    server.close((err: any) => {
+      if (err) {
+        appLogger.error('Error during server shutdown', { error: err.message });
+        process.exit(1);
+      }
+
+      appLogger.info('Server closed successfully');
+      process.exit(0);
+    });
+
+    // Force shutdown after 30 seconds
+    setTimeout(() => {
+      appLogger.error('Force shutdown after 30 seconds');
+      process.exit(1);
+    }, 30000);
+  } else {
+    // In test mode, just exit gracefully
+    appLogger.info('Graceful shutdown completed (test mode)');
+    process.exit(0);
+  }
+};
+
+// Start server only if not in test mode or if explicitly requested
+let server: any;
+
+if (serverConfig.nodeEnv !== 'test') {
+  server = app.listen(serverConfig.port, serverConfig.host, () => {
+    appLogger.info('🚀 Server started successfully', {
+      port: serverConfig.port,
+      host: serverConfig.host,
+      nodeEnv: serverConfig.nodeEnv,
+      healthCheck: monitoringConfig.healthCheckPath,
+      metrics: monitoringConfig.enableMetrics
+        ? monitoringConfig.metricsPath
+        : 'disabled',
+    });
+  });
+
+  // Handle graceful shutdown
+  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+  // Handle uncaught exceptions
+  process.on('uncaughtException', (error) => {
+    appLogger.fatal('Uncaught exception', {
+      error: error.message,
+      stack: error.stack,
+    });
+    process.exit(1);
+  });
+
+  process.on('unhandledRejection', (reason, promise) => {
+    appLogger.fatal('Unhandled promise rejection', {
+      reason: reason instanceof Error ? reason.message : reason,
+      promise: promise.toString(),
+    });
+    process.exit(1);
+  });
+}
+
+export default app;
